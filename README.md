@@ -1,5 +1,9 @@
 # Comparing distance-based trees and phylogenetic trees for influenza
 
+Contributors: Amanda L. Skarlupka, Lambodhar Damodaran, Yang Ge, Murphy H. John, Savannah L. Miller, Meng-Hsuan Sung, Hayley Hemme, Ye Shen, Ted M. Ross, Justin Bahl, Andreas Handel
+
+See the draft word file for the main deliverable from this research project.
+
 Developing universal influenza vaccines will require improved understanding of how influenza variants differ from each other. We find that temporal distances perform poorly overall, but even sequence distances which match phylogenetic distances well do not match cartographic distances based on actual immune response data.
 
 This was my term project for Justin Bahl's molecular epidemiology course at the University of Georgia. It contains novel results and will be included as an appendix to my dissertation (though probably never published formally in an academic journal). Since it will be in my dissertation, this repo contains the code and data to reproduce my results.
