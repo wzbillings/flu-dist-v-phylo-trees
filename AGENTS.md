@@ -79,6 +79,8 @@ Do not commit files larger than 95 MB. If a requested change would require commi
 
 Do not create commits, push to remotes, rewrite history, delete branches, or change repository visibility unless explicitly asked.
 
+When creating commit messages, always follow the Conventional Commits 1.0.0 format, even if prior repository history uses a different style.
+
 ## Reproducible workflow rules
 
 Prefer the project's established workflow. If the project uses a pipeline tool, treat that pipeline as the source of truth for derived data, models, tables, figures, diagnostics, and manuscript-ready outputs.

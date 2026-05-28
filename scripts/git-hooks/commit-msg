@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+#
+# commit-msg hook
+#
+# Enforces Conventional Commits 1.0.0 for ordinary commits.
+#
+# Expected format:
+#
+#   <type>[optional scope][!]: <description>
+#
+# Examples:
+#
+#   feat(auth): add login functionality
+#   fix(api)!: resolve timeout issue
+#   docs(readme): update installation instructions
+#
+# Install:
+#
+#   Save this file as .git/hooks/commit-msg
+#   chmod +x .git/hooks/commit-msg
+#
+# Notes:
+#
+# - Git passes the path to the commit message file as the first argument.
+# - Merge commits and similar Git-generated messages are ignored.
+# - This hook validates only the first non-comment line of the commit message.
+
+set -euo pipefail
+
+readonly COMMIT_MSG_FILE="${1:?commit message file path is required}"
+
+# Conventional Commits 1.0.0-compatible subject-line pattern.
+#
+# Allowed types are intentionally limited to the common Conventional Commit types
+# used by this project.
+#
+# Format:
+#
+#   type(scope)!: description
+#   type!: description
+#   type: description
+#
+# Scope allows letters, numbers, underscores, dots, and hyphens.
+readonly CONVENTIONAL_COMMIT_REGEX='^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert)(\([A-Za-z0-9_.-]+\))?!?: .+$'
+
+# Read the first non-empty, non-comment line. Git comments begin with '#'.
+commit_subject="$(
+    grep --extended-regexp --invert-match '^[[:space:]]*(#|$)' "$COMMIT_MSG_FILE" \
+        | head -n 1
+)"
+
+# Allow Git-generated merge commits and branch integration messages.
+#
+# Examples:
+#
+#   Merge branch 'main' into feature/foo
+#   Merge pull request #123 from example/branch
+if [[ "$commit_subject" =~ ^Merge[[:space:]] ]] || [[ "$commit_subject" =~ [[:space:]]into[[:space:]] ]]; then
+    exit 0
+fi
+
+if [[ ! "$commit_subject" =~ $CONVENTIONAL_COMMIT_REGEX ]]; then
+    cat >&2 <<'EOF'
+ERROR: Commit message does not follow Conventional Commits 1.0.0 format.
+
+Expected subject-line format:
+
+  <type>(<optional scope>): <description>
+  <type>(<optional scope>)!: <description>
+
+Valid types:
+
+  feat:     A new feature
+  fix:      A bug fix
+  docs:     Documentation changes
+  style:    Code style changes that do not affect behavior
+  refactor: Code changes that neither fix a bug nor add a feature
+  test:     Adding or updating tests
+  chore:    Routine maintenance tasks
+  build:    Changes affecting the build system or dependencies
+  ci:       Changes to CI configuration files or scripts
+  perf:     Performance improvements
+  revert:   Reverting a previous commit
+
+Examples:
+
+  feat(auth): add login functionality
+  fix(api)!: resolve timeout issue
+  docs(readme): update installation instructions
+
+EOF
+
+    printf 'Received subject line:\n\n  %s\n\n' "$commit_subject" >&2
+    exit 1
+fi
+
+exit 0
