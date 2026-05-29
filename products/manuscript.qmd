@@ -30,14 +30,6 @@ abstract: |
 #| label: setup
 #| include: false
 
-box::use(
-	knitr,
-	here,
-	markdown,
-	rmarkdown,
-	mime
-)
-
 library(flextable)
 ```
 
@@ -114,7 +106,7 @@ expected.
 #|   strains. The box shows Pearson's correlation (R) along with a 95%
 #|   Wald-type confidence interval.
 
-knitr::include_graphics(here::here("Results", "Figures", "corr-plot.png"))
+knitr::include_graphics(here::here("results", "Figures", "corr-plot.png"))
 ```
 
 The cartographic distance correlation for H1N1 is also moderate, indicating that
@@ -142,7 +134,7 @@ between temporal and cophenetic distance (@fig-corr).
 #|   strains (right). Both trees are rooted at the midpoint for display
 #|   purposes, but the root was not optimized during fitting.
 
-knitr::include_graphics(here::here("Results", "Figures", "ml-trees.png"))
+knitr::include_graphics(here::here("results", "Figures", "ml-trees.png"))
 ```
 
 For brevity, we do not show all 8 of the distance-based neighbor joining
@@ -169,7 +161,7 @@ model for H1N1.
 #|    test (SH p-value; evaluated on one million bootstrap resamples), and the
 #|    Robinson-Foulds distance from the ML tree (RF distance).
 
-here::here("Results", "Tables", "stat-table.Rds") |>
+here::here("results", "Tables", "stat-table.rds") |>
 	readr::read_rds() |>
 	flextable::width(
 		j = c(1, 2, 3, 4, 5, 6),

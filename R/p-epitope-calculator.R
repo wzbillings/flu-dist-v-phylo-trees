@@ -96,10 +96,6 @@ extract_string_chars <- function(str, pos) {
 
 # Compute the p-epitope distance between two strings
 pepitope <- function(seq_1, seq_2, subtype) {
-	# Due to how phangorn works we MUST have phangorn attached for this function
-	# to work
-	require(phangorn)
-	
 	# Get the numbers for the residues in each epitope
 	p_epi_sites <- get_pepitope_sites(subtype, sites = c('a', 'b', 'c', 'd', 'e'))
 	

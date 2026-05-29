@@ -1,153 +1,238 @@
 ###
-# Calculate pairwise strain distance matrices
+# Pairwise strain distance calculations
 # Zane Billings
-# 2024-05-03
-# Take the multiple sequence alignments and calculate various distance
-# matrices to use for phylogenetics.
 ###
 
-box::use(
-	readr,
-	here,
-	phangorn,
-	Racmacs
-)
+as_protein_phydat <- function(alignment_result) {
+	phangorn::as.phyDat(alignment_result$protein_msa)
+}
 
-source(here::here("R", "utils.R"))
+extract_aligned_proteins <- function(alignment_result) {
+	seqs <- alignment_result$aligned_sequences$pro_aligned
+	names(seqs) <- alignment_result$aligned_sequences$short_name
+	seqs
+}
 
-# Data loading ====
-# First we need to load in the aligned sequence data. For now we'll
-# only look at the protein sequences.
-# TODO calculate more distances
-# TODO do distances for nuclear sequences
-align_h1 <- readr::read_rds(here::here("results", "h1-pro-alignment.Rds"))
-align_h3 <- readr::read_rds(here::here("results", "h3-pro-alignment.Rds"))
+calculate_hamming_distance <- function(protein_phydat) {
+	protein_phydat |>
+		phangorn::dist.hamming() |>
+		as.matrix()
+}
 
-# Convert the alignments to phyDat type for phangorn
-phydat_h1 <- phangorn::as.phyDat(align_h1)
-phydat_h3 <- phangorn::as.phyDat(align_h3)
+calculate_pepitope_distance <- function(aligned_proteins, subtype) {
+	dist.pepi(aligned_proteins, subtype = subtype)
+}
 
-# Load the sequence dataframes
-seqs_h1 <- readr::read_rds(here::here("data", "h1-seqs-aligned.Rds"))
-seqs_h3 <- readr::read_rds(here::here("data", "h3-seqs-aligned.Rds"))
+read_cartography_map <- function(path) {
+	validate_file_exists(path, "cartography .ace file")
+	Racmacs::read.acmap(path)
+}
 
-# Extract the protein sequences
-prot_h1 <- seqs_h1$pro_aligned
-names(prot_h1) <- seqs_h1$short_name
+calculate_cartography_distance <- function(cartography_map, virus_metadata) {
+	dist_cart <- racmacs_map_to_distances(cartography_map)
+	colnames(dist_cart) <- replace_strain_names(
+		colnames(dist_cart),
+		virus_info = virus_metadata,
+		from = "analysis",
+		to = "short"
+	)
+	rownames(dist_cart) <- replace_strain_names(
+		rownames(dist_cart),
+		virus_info = virus_metadata,
+		from = "analysis",
+		to = "short"
+	)
+	dist_cart
+}
 
-prot_h3 <- seqs_h3$pro_aligned
-names(prot_h3) <- seqs_h3$short_name
+calculate_subtype_distances <- function(
+		alignment_result,
+		cartography_map,
+		virus_metadata
+	) {
+	subtype <- alignment_result$subtype
+	protein_phydat <- as_protein_phydat(alignment_result)
+	aligned_proteins <- extract_aligned_proteins(alignment_result)
+	
+	distances <- list(
+		year = dist_year(names(aligned_proteins), virus_info = virus_metadata),
+		hamming = calculate_hamming_distance(protein_phydat),
+		pepi = calculate_pepitope_distance(aligned_proteins, subtype = subtype),
+		cart = calculate_cartography_distance(cartography_map, virus_metadata)
+	)
+	
+	distances <- standardize_distance_order(
+		distances,
+		reference_names = names(aligned_proteins),
+		subtype = subtype
+	)
+	validate_distance_set(distances, subtype = subtype)
+	distances
+}
 
-# Next we need to load the cartography data
-racmacs_map_h1 <- Racmacs::read.acmap(here::here("data", "h1_post_all_2d.ace"))
-racmacs_map_h3 <- Racmacs::read.acmap(here::here("data", "h3_post_all_2d.ace"))
+standardize_distance_order <- function(distances, reference_names, subtype = "subtype") {
+	purrr::imap(
+		distances,
+		\(mat, method) {
+			validate_distance_matrix(mat, paste(subtype, method))
+			if (!setequal(rownames(mat), reference_names)) {
+				missing <- setdiff(reference_names, rownames(mat))
+				extra <- setdiff(rownames(mat), reference_names)
+				stop(
+					"Distance matrix ",
+					method,
+					" for ",
+					subtype,
+					" has incompatible strain names. Missing: ",
+					paste(missing, collapse = ", "),
+					"; extra: ",
+					paste(extra, collapse = ", "),
+					call. = FALSE
+				)
+			}
+			mat[reference_names, reference_names, drop = FALSE]
+		}
+	)
+}
 
-# Calculate Hamming distance matrix ====
-dist_hamming_h1 <-
-	phydat_h1 |>
-	phangorn::dist.hamming() |>
-	as.matrix()
+validate_distance_set <- function(distances, subtype = "subtype") {
+	if (!is.list(distances) || length(distances) == 0) {
+		stop("Distance set for ", subtype, " must be a non-empty list.", call. = FALSE)
+	}
+	purrr::iwalk(distances, \(mat, name) validate_distance_matrix(mat, paste(subtype, name)))
+	
+	reference_names <- rownames(distances[[1]])
+	name_mismatch <- purrr::keep(distances, \(mat) !identical(rownames(mat), reference_names))
+	if (length(name_mismatch) > 0) {
+		stop(
+			"Distance matrices for ",
+			subtype,
+			" do not share the same strain names/order: ",
+			paste(names(name_mismatch), collapse = ", "),
+			call. = FALSE
+		)
+	}
+	invisible(distances)
+}
 
-dist_hamming_h3 <-
-	phydat_h3 |>
-	phangorn::dist.hamming() |>
-	as.matrix()
+combine_distance_tables <- function(distances_by_subtype, unique_pairs = TRUE) {
+	purrr::imap_dfr(
+		distances_by_subtype,
+		\(distances, subtype) purrr::imap_dfr(
+			distances,
+			\(mat, method) tidy_dist_mat(
+				mat,
+				unique_pairs = unique_pairs,
+				include_diagonal = !unique_pairs
+			) |>
+				dplyr::mutate(method = method, .before = 1)
+		) |>
+			dplyr::mutate(subtype = subtype, .before = 1)
+	)
+}
 
-# Calculate p-Epitope distance matrix ====
-source(here::here("R", "p-epitope-calculator.R"))
+normalize_distance_table <- function(distance_table) {
+	distance_table |>
+		dplyr::group_by(.data$subtype, .data$method) |>
+		dplyr::mutate(d = normalize_vector(.data$d)) |>
+		dplyr::ungroup()
+}
 
-dist_pepi_h1 <-
-	prot_h1 |>
-	dist.pepi(subtype = 'h1')
+normalize_vector <- function(x) {
+	xmax <- max(x, na.rm = TRUE)
+	xmin <- min(x, na.rm = TRUE)
+	if (isTRUE(all.equal(xmax, xmin))) {
+		return(x * 0)
+	}
+	(x - xmin) / (xmax - xmin)
+}
 
-dist_pepi_h3 <-
-	prot_h3 |>
-	dist.pepi(subtype = 'h3')
+lower_triangle_values <- function(mat) {
+	validate_distance_matrix(mat)
+	mat[lower.tri(mat)]
+}
 
-# Calculate cartography distance matrix ====
+align_distance_matrices <- function(mat1, mat2) {
+	validate_distance_matrix(mat1)
+	validate_distance_matrix(mat2)
+	shared <- intersect(rownames(mat1), rownames(mat2))
+	if (length(shared) < 3) {
+		stop("Need at least three shared strains for a matrix comparison.", call. = FALSE)
+	}
+	mat1 <- mat1[shared, shared, drop = FALSE]
+	mat2 <- mat2[shared, shared, drop = FALSE]
+	list(mat1 = mat1, mat2 = mat2)
+}
 
-# Do it for H1
-dist_cart_h1 <- racmaps_map_to_distances(racmacs_map_h1)
-# Fix the column and row names to use short names instead
-colnames(dist_cart_h1) <- replace_strain_names(colnames(dist_cart_h1))
-rownames(dist_cart_h1) <- replace_strain_names(rownames(dist_cart_h1))
+mantel_permutation_test <- function(
+		mat1,
+		mat2,
+		permutations,
+		seed = NULL,
+		method = "pearson"
+	) {
+	aligned <- align_distance_matrices(mat1, mat2)
+	mat1 <- aligned$mat1
+	mat2 <- aligned$mat2
+	x <- lower_triangle_values(mat1)
+	y <- lower_triangle_values(mat2)
+	observed <- stats::cor(x, y, method = method, use = "complete.obs")
+	
+	null <- with_seed(seed, {
+		replicate(permutations, {
+			perm <- sample(seq_len(nrow(mat2)))
+			permuted <- mat2[perm, perm, drop = FALSE]
+			stats::cor(
+				x,
+				lower_triangle_values(permuted),
+				method = method,
+				use = "complete.obs"
+			)
+		})
+	})
+	
+	tibble::tibble(
+		estimate = observed,
+		p_value = (sum(abs(null) >= abs(observed), na.rm = TRUE) + 1) / (permutations + 1),
+		permutations = permutations,
+		method = paste0("mantel_", method)
+	)
+}
 
-# Dor it for H3
-dist_cart_h3 <- racmaps_map_to_distances(racmacs_map_h3)
-colnames(dist_cart_h3) <- replace_strain_names(colnames(dist_cart_h3))
-rownames(dist_cart_h3) <- replace_strain_names(rownames(dist_cart_h3))
-
-# Calculate year distance matrix ====
-dist_year_h1 <-
-	prot_h1 |>
-	names() |>
-	dist.year()
-
-dist_year_h3 <-
-	prot_h3 |>
-	names() |>
-	dist.year()
-
-# Output formatting ====
-# Make a list of the distance matrices
-dists_h1 <- list(
-	"year" = dist_year_h1,
-	"hamming" = dist_hamming_h1,
-	"pepi" = dist_pepi_h1,
-	"cart" = dist_cart_h1
-)
-
-dists_h3 <- list(
-	"year" = dist_year_h3,
-	"hamming" = dist_hamming_h3,
-	"pepi" = dist_pepi_h3,
-	"cart" = dist_cart_h3
-)
-
-# Tidy and combine into a nice data frame
-dat_dists_h1 <-
-	dists_h1 |>
-	purrr::map(tidy_dist_mat) |>
-	dplyr::bind_rows(.id = "method")
-
-dat_dists_h3 <-
-	dists_h3 |>
-	purrr::map(tidy_dist_mat) |>
-	dplyr::bind_rows(.id = "method")
-
-dat_dists <-
-	list(
-		'h1' = dat_dists_h1,
-		'h3' = dat_dists_h3
-	) |>
-	dplyr::bind_rows(.id = "subtype")
-
-dat_dists_normalized <-
-	dat_dists |>
-	dplyr::group_by(subtype, method) |>
-	dplyr::mutate(d = (d - min(d)) / (max(d) - min(d))) |>
-	dplyr::ungroup()
-
-# Save to file ====
-
-readr::write_rds(
-	dists_h1,
-	here::here("results", "h1-dists.Rds")
-)
-
-readr::write_rds(
-	dists_h3,
-	here::here("results", "h3-dists.Rds")
-)
-
-readr::write_rds(
-	dat_dists,
-	here::here("results", "dist-df-unnormalized.Rds")
-)
-
-readr::write_rds(
-	dat_dists_normalized,
-	here::here("results", "dist-df-normalized.Rds")
-)
+compare_distance_matrices <- function(distances_by_subtype, settings = make_analysis_settings()) {
+	purrr::imap_dfr(
+		distances_by_subtype,
+		\(distances, subtype) {
+			method_pairs <- utils::combn(names(distances), 2, simplify = FALSE)
+			results <- purrr::map_dfr(method_pairs, \(pair) {
+				m1 <- pair[[1]]
+				m2 <- pair[[2]]
+				aligned <- align_distance_matrices(distances[[m1]], distances[[m2]])
+				descriptive <- tibble::tibble(
+					estimate = stats::cor(
+						lower_triangle_values(aligned$mat1),
+						lower_triangle_values(aligned$mat2),
+						method = "pearson",
+						use = "complete.obs"
+					),
+					p_value = NA_real_,
+					permutations = NA_integer_,
+					method = "descriptive_pearson"
+				)
+				mantel <- mantel_permutation_test(
+					distances[[m1]],
+					distances[[m2]],
+					permutations = settings$mantel_permutations,
+					seed = settings$seed,
+					method = "pearson"
+				)
+				dplyr::bind_rows(descriptive, mantel) |>
+					dplyr::mutate(m1 = m1, m2 = m2, .before = 1)
+			})
+			results |>
+				dplyr::mutate(subtype = subtype, .before = 1)
+		}
+	)
+}
 
 #### END OF FILE ####
