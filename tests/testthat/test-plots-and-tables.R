@@ -123,3 +123,41 @@ test_that("correlation_ci falls back to Wald intervals without pair columns", {
 	expect_true(ci$ci_lower < estimate)
 	expect_true(ci$ci_upper > estimate)
 })
+
+test_that("cophenetic Mantel summary reports overall and subtype-specific matrix results", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+	skip_if_not_installed("purrr")
+	skip_if_not_installed("flextable")
+
+	make_mat <- function(values) {
+		mat <- matrix(0, nrow = 4, ncol = 4, dimnames = list(letters[1:4], letters[1:4]))
+		mat[lower.tri(mat)] <- values
+		mat <- mat + t(mat)
+		mat
+	}
+	cophenetic <- make_mat(c(1, 2, 4, 3, 5, 6))
+	year <- make_mat(c(1, 3, 5, 2, 4, 6))
+	grantham <- make_mat(c(2, 1, 4, 3, 6, 5))
+	pepi <- make_mat(c(1, 1, 2, 3, 5, 8))
+	cart <- make_mat(c(6, 5, 3, 4, 2, 1))
+	distances <- list(
+		h1 = list(cophenetic = cophenetic, year = year, grantham = grantham, pepi = pepi, cart = cart),
+		h3 = list(cophenetic = cophenetic, year = cart, grantham = pepi, pepi = grantham, cart = year)
+	)
+	settings <- make_analysis_settings("test")
+	settings$mantel_permutations <- 9L
+	settings$mantel_bootstrap_reps <- 5L
+
+	pair_data <- make_cophenetic_pair_table(distances["h1"], "year")
+	summary <- calculate_cophenetic_mantel_summary(distances, settings)
+
+	expect_equal(nrow(pair_data), 6)
+	expect_false(any(pair_data$Var1 == pair_data$Var2))
+	expect_equal(nrow(summary), 12)
+	expect_equal(unique(summary$Scope), c("Overall", "H1N1", "H3N2"))
+	expect_true(all(summary$Permutations == 9))
+	expect_true(all(summary$`Bootstrap draws` == 5))
+	expect_false("Pearson r" %in% names(summary))
+	expect_s3_class(make_cophenetic_mantel_table(summary), "flextable")
+})

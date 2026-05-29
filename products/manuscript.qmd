@@ -76,7 +76,14 @@ both alignments to construct maximum likelihood (ML) unrooted phylogenetic trees
 using the FLU amino acid substitution model. We extracted the
 cophenetic distances between taxa from the ML trees, and compared these
 distances to our other distance metrics (temporal, Grantham,
-$p$-Epitope, and cartography) using Pearson's correlation.
+$p$-Epitope, and cartography) using Mantel correlations with matrix
+permutation p-values [@legendre2010MantelAlternatives;
+@legendre2015ShouldMantel]. These comparisons used only unique off-diagonal
+strain pairs, excluding duplicate symmetric distances and self-comparisons.
+We estimated 95% intervals for the Mantel statistic using Bayesian bootstrap
+resampling over strain units. Descriptive Pearson correlations using the same
+unique off-diagonal pair representation are reported in the supplement for
+interpretability.
 
 For each of the four distance metrics, we also built distance-based trees using
 neighbor joining. To compare the methods, we calculated the likelihood of each
@@ -89,11 +96,11 @@ with R version 4.3.3 [@rcoreteam2024] using the packages
 
 # Study Results
 
-The distance metrics differed in their agreement with ML-tree cophenetic
+The distance metrics differed in their Mantel agreement with ML-tree cophenetic
 distance (@fig-corr; @tbl-distance-correlations). Grantham and $p$-Epitope
-distances were strongly correlated with ML-tree distance for both subtypes,
-while cartographic distance had lower correlations. Temporal distance was
-strongly correlated with ML-tree distance for H3N2, but not for H1N1. H1N1 has
+distances were strongly associated with ML-tree distance for both subtypes,
+while cartographic distance had lower matrix correlations. Temporal distance was
+strongly associated with ML-tree distance for H3N2, but not for H1N1. H1N1 has
 two clusters, 2009 pandemic-like (pdm) and non-pdm. The pdm-like strains are
 genetically more similar to the 1918 pandemic strain than to most strains which
 circulated from 1950 -- 2009, so a simple temporal-distance comparison can be
@@ -112,14 +119,16 @@ knitr::include_graphics(here::here("results", "Figures", "corr-plot.png"))
 ```{r}
 #| label: tbl-distance-correlations
 #| tbl-cap: |
-#|   Descriptive Pearson correlations between each distance metric and
-#|   ML-tree cophenetic distance, overall and by subtype.
+#|   Mantel correlations between each distance metric and ML-tree cophenetic
+#|   distance, overall and by subtype. Intervals are Bayesian bootstrap 95%
+#|   intervals over strain units. P-values are two-sided matrix-permutation
+#|   p-values for the observed strain panel.
 
-here::here("results", "Tables", "distance-correlation-table.rds") |>
+here::here("results", "Tables", "distance-mantel-table.rds") |>
 	readr::read_rds()
 ```
 
-The cartographic distance correlation for H1N1 is also moderate, indicating that
+The cartographic Mantel correlation for H1N1 is also moderate, indicating that
 the evolutionary pattern of H1N1 strains does not necessarily explain variation
 in observed immune responses. For H3N2, the cartographic correlation was the
 lowest, and the two distances become less correlated as the distance values
@@ -134,7 +143,7 @@ pandemic strain), NJ/76 swine influenza, and the modern pdm-like strains. The
 other clade contains the H1N1 strains which circulated between the 1918 pandemic
 and the 2009 pandemic. The H3N2
 strains tend to follow a similar ladder-like pattern, beginning with HK/68 and
-primarily separating by temporal distance, which corroborates the correlations
+primarily separating by temporal distance, which corroborates the associations
 between temporal and cophenetic distance (@fig-corr).
 
 ```{r}

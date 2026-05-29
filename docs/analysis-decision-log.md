@@ -429,10 +429,12 @@ pipeline and can be removed later after regeneration is verified.
 ## 2026-05-29 - Test and Full Pipeline Settings
 
 **Decision:** The pipeline defaults to `FLU_TARGETS_MODE=test`, with seed 370,
-99 Mantel permutations, 100 SH-test bootstrap resamples, 4 gamma categories for
-model-test scaffolding, and a fast NNI ML-tree fitting strategy. Full mode is
-selected with `FLU_TARGETS_MODE=full` and uses 9,999 Mantel permutations,
-1,000,000 SH-test resamples, 20 gamma categories, and `pml_bb` tree fitting.
+99 Mantel permutations, 199 Mantel Bayesian-bootstrap draws, 100 SH-test
+bootstrap resamples, 4 gamma categories for model-test scaffolding, and a fast
+NNI ML-tree fitting strategy. Full mode is selected with
+`FLU_TARGETS_MODE=full` and uses 9,999 Mantel permutations, 4,000 Mantel
+Bayesian-bootstrap draws, 1,000,000 SH-test resamples, 20 gamma categories, and
+`pml_bb` tree fitting.
 
 **Rationale:** The test mode is intended to verify pipeline integrity without
 launching publication-scale stochastic or expensive computations.
@@ -567,3 +569,33 @@ compare across pairs with different numbers of comparable aligned sites.
 **Impact:** Main distance outputs, figures, tables, and manuscript terminology
 now use Grantham distance instead of Hamming distance. p-epitope distance remains
 in the primary analysis.
+
+## 2026-05-29 - Primary Mantel Table and Supplementary Pearson Reporting
+
+**Decision:** The main manuscript distance-matrix table should report Mantel
+correlations for ML-tree cophenetic distance versus temporal, Grantham,
+p-epitope, and cartographic distance. The table should include overall,
+H1N1-specific, and H3N2-specific rows; unique off-diagonal strain pairs only;
+Bayesian bootstrap 95% intervals over strain units; and two-sided
+matrix-permutation p-values for the observed strain panel. Descriptive Pearson
+correlations should move to the supplement.
+
+**Rationale:** Mantel correlations are the primary matrix-comparison statistic
+approved for this analysis, while Pearson correlations remain useful for
+interpreting approximate linear agreement between distance scales. Overall rows
+are retained because reviewers are likely to ask for them, but subtype-specific
+rows remain central to interpretation.
+
+**Evidence / citation:** Human approval in chat on 2026-05-29; implementation
+in `R/distance-calc.R`, `R/plots-and-tables.R`, `_targets.R`,
+`products/manuscript.qmd`, and `products/supplement.qmd`.
+
+**Alternatives considered:** Main-table Pearson correlations with Mantel
+p-values, subtype-only reporting, omitting Mantel intervals, and reporting
+Bayesian-bootstrap tail probabilities as p-values. Bootstrap tail probabilities
+were not treated as p-values because the permutation p-values are the
+pre-specified apparent-sample matrix-correspondence test.
+
+**Impact:** Manuscript claims should refer to Mantel agreement or matrix
+association as the primary distance-matrix result. Pearson correlations should
+be labeled descriptive and interpreted only as scale-calibration summaries.

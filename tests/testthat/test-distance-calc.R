@@ -67,6 +67,29 @@ test_that("distance matrix alignment uses shared strains and requires enough ove
 	expect_error(align_distance_matrices(mat1, small), "Need at least three shared strains")
 })
 
+test_that("paired lower-triangle distances exclude diagonals and duplicate pairs", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+
+	mat1 <- toy_distance_matrix()
+	mat2 <- toy_distance_matrix()
+	pairs <- paired_lower_triangle_distances(
+		mat1,
+		mat2,
+		subtype = "toy",
+		x_name = "cophenetic",
+		y_name = "distance"
+	)
+
+	expect_equal(nrow(pairs), 3)
+	expect_equal(as.character(pairs$Var1), c("b", "c", "c"))
+	expect_equal(as.character(pairs$Var2), c("a", "a", "b"))
+	expect_false(any(as.character(pairs$Var1) == as.character(pairs$Var2)))
+	expect_false(any(paste(pairs$Var1, pairs$Var2) %in% paste(pairs$Var2, pairs$Var1)))
+	expect_equal(pairs$cophenetic, c(1, 2, 3))
+	expect_equal(pairs$distance, c(1, 2, 3))
+})
+
 test_that("mantel_permutation_test returns deterministic result structure", {
 	skip_if_not_installed("tibble")
 
@@ -74,8 +97,34 @@ test_that("mantel_permutation_test returns deterministic result structure", {
 	mat2 <- toy_distance_matrix(c("b", "c", "a"))
 	result <- mantel_permutation_test(mat1, mat2, permutations = 9, seed = 123)
 
-	expect_equal(names(result), c("estimate", "p_value", "permutations", "method"))
+	expect_equal(names(result), c("estimate", "p_value", "permutations", "n_pairs", "method"))
 	expect_equal(result$permutations, 9)
+	expect_equal(result$n_pairs, 3)
 	expect_equal(result$method, "mantel_pearson")
+	expect_true(result$p_value >= 0 && result$p_value <= 1)
+	expect_error(mantel_permutation_test(mat1, mat2, permutations = 0), "positive numeric scalar")
+})
+
+test_that("stratified Mantel permutation combines subtype-specific unique pairs", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("purrr")
+	skip_if_not_installed("dplyr")
+
+	distances <- list(
+		h1 = list(cophenetic = toy_distance_matrix(), year = toy_distance_matrix()),
+		h3 = list(cophenetic = toy_distance_matrix(), year = toy_distance_matrix(c("b", "c", "a")))
+	)
+
+	result <- stratified_mantel_permutation_test(
+		distances,
+		"cophenetic",
+		"year",
+		permutations = 9,
+		seed = 123
+	)
+
+	expect_equal(names(result), c("estimate", "p_value", "permutations", "n_pairs", "method"))
+	expect_equal(result$n_pairs, 6)
+	expect_equal(result$method, "stratified_mantel_pearson")
 	expect_true(result$p_value >= 0 && result$p_value <= 1)
 })
