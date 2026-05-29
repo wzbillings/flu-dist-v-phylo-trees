@@ -82,3 +82,12 @@ build_neighbor_joining_trees|function|3dfbb4c84c8c57a1
 calculate_pepitope_distance|function|d6116a51b93eaf5c
 calculate_tree_analysis|function|fd7e576ccbae0ddd
 calculate_subtype_distances|function|49d459f3ffc53e19
+bibliography_file|stem|39fa07d751591534|d82c7479dc6a280d|2c530c1562a7fbd1|948073629|products/project-refs.bib|t20601.6498999373s|s51541b|51541|file|local|vector|||0||
+manuscript_qmd|stem|5df7fcf502099480|5a4cdea146f95052|2c530c1562a7fbd1|1543021995|products/manuscript.qmd|t20602.0650572661s|s9777b|9777|file|local|vector|||0||
+csl_file|stem|d604cb5973c8a681|d6d01b703e31ea70|2c530c1562a7fbd1|-610596895|products/plos-computational-biology.csl|t20601.6498999373s|s1049b|1049|file|local|vector|||0||
+h3_cartography_map|stem|99223af208d3997d|5dc86e8ec82e771b|6d61ae7dceb8d9e5|-1090374186||t20602.1063273242s|s76129b|76129|rds|local|vector|||0.5||
+h1_cartography_map|stem|dde9b7a55a5e0b12|bd69889552197e0a|e03939c54089ca88|443462143||t20602.1063300715s|s60853b|60853|rds|local|vector|||0.07||
+h3_alignment|stem|a632c44e4117e897|7b7ba6621acbe738|d341286fe5d18951|240567329||t20602.1064134984s|s20354b|20354|rds|local|vector|||7.19||
+h1_alignment|stem|3599b17a20deb71b|78a8f32f24cfbbf2|b608c9f2f61bd5cc|-977876340||t20602.1064789542s|s20354b|20354|rds|local|vector|||5.63||
+h3_protein_alignment_file|stem|fedb6cd6ae900c9a|1cd5b04f748b4261|668872c5ac00c9ef|-1314343801|results/derived/h3-pro-alignment.rds|t20602.1064799815s|s25750b|25750|file|local|vector|||0.06||
+h3_distances|stem||f945af480e53dedd|b43c4403957f2a51|-1598990338||t20602.1065200253s||0|rds|local|vector|||3.39||ℹ In index: 4. ℹ With name: cart. Caused by error: ! Distance matrix cart for h3 has incompatible strain names. Missing: SC/18, Wei/43, FM/47, Den/57, NJ/76, USSR/77, Bra/78, CA/78, Chi/83, Sing/86, TX/91, Bei/95, NC/99, SI/06, Bris/07, CA/09, MI/15, Bris/18; extra:
