@@ -145,6 +145,33 @@ lower_triangle_values <- function(mat) {
 	mat[lower.tri(mat)]
 }
 
+paired_lower_triangle_distances <- function(
+		mat1,
+		mat2,
+		subtype = NULL,
+		x_name = "x",
+		y_name = "y"
+	) {
+	aligned <- align_distance_matrices(mat1, mat2)
+	mat1 <- aligned$mat1
+	mat2 <- aligned$mat2
+	lower <- lower.tri(mat1)
+	row_index <- row(mat1)[lower]
+	col_index <- col(mat1)[lower]
+
+	out <- tibble::tibble(
+		Var1 = rownames(mat1)[row_index],
+		Var2 = colnames(mat1)[col_index]
+	)
+	out[[x_name]] <- as.numeric(mat1[lower])
+	out[[y_name]] <- as.numeric(mat2[lower])
+
+	if (!is.null(subtype)) {
+		out <- dplyr::mutate(out, subtype = subtype, .before = 1)
+	}
+	out
+}
+
 align_distance_matrices <- function(mat1, mat2) {
 	validate_distance_matrix(mat1)
 	validate_distance_matrix(mat2)
@@ -164,31 +191,97 @@ mantel_permutation_test <- function(
 		seed = NULL,
 		method = "pearson"
 	) {
+	if (!is.numeric(permutations) || length(permutations) != 1 || permutations < 1) {
+		stop("`permutations` must be a positive numeric scalar.", call. = FALSE)
+	}
 	aligned <- align_distance_matrices(mat1, mat2)
 	mat1 <- aligned$mat1
 	mat2 <- aligned$mat2
 	x <- lower_triangle_values(mat1)
 	y <- lower_triangle_values(mat2)
-	observed <- stats::cor(x, y, method = method, use = "complete.obs")
-	
+	complete <- stats::complete.cases(x, y)
+	observed <- stats::cor(x[complete], y[complete], method = method)
+
 	null <- with_seed(seed, {
 		replicate(permutations, {
 			perm <- sample(seq_len(nrow(mat2)))
 			permuted <- mat2[perm, perm, drop = FALSE]
+			y_perm <- lower_triangle_values(permuted)
+			perm_complete <- stats::complete.cases(x, y_perm)
+			stats::cor(x[perm_complete], y_perm[perm_complete], method = method)
+		})
+	})
+
+	tibble::tibble(
+		estimate = observed,
+		p_value = if (is.na(observed)) {
+			NA_real_
+		} else {
+			(sum(abs(null) >= abs(observed), na.rm = TRUE) + 1) / (permutations + 1)
+		},
+		permutations = permutations,
+		n_pairs = sum(complete),
+		method = paste0("mantel_", method)
+	)
+}
+
+stratified_mantel_permutation_test <- function(
+		distances_by_subtype,
+		m1,
+		m2,
+		permutations,
+		seed = NULL,
+		method = "pearson"
+	) {
+	if (!is.numeric(permutations) || length(permutations) != 1 || permutations < 1) {
+		stop("`permutations` must be a positive numeric scalar.", call. = FALSE)
+	}
+	observed_pairs <- purrr::imap_dfr(
+		distances_by_subtype,
+		\(distances, subtype) paired_lower_triangle_distances(
+			distances[[m1]],
+			distances[[m2]],
+			subtype = subtype
+		)
+	)
+	complete <- stats::complete.cases(observed_pairs$x, observed_pairs$y)
+	observed <- stats::cor(
+		observed_pairs$x[complete],
+		observed_pairs$y[complete],
+		method = method
+	)
+
+	null <- with_seed(seed, {
+		replicate(permutations, {
+			permuted_pairs <- purrr::imap_dfr(
+				distances_by_subtype,
+				\(distances, subtype) {
+					aligned <- align_distance_matrices(distances[[m1]], distances[[m2]])
+					x <- lower_triangle_values(aligned$mat1)
+					perm <- sample(seq_len(nrow(aligned$mat2)))
+					permuted <- aligned$mat2[perm, perm, drop = FALSE]
+					tibble::tibble(x = x, y = lower_triangle_values(permuted))
+				}
+			)
+			perm_complete <- stats::complete.cases(permuted_pairs$x, permuted_pairs$y)
 			stats::cor(
-				x,
-				lower_triangle_values(permuted),
-				method = method,
-				use = "complete.obs"
+				permuted_pairs$x[perm_complete],
+				permuted_pairs$y[perm_complete],
+				method = method
 			)
 		})
 	})
-	
+
 	tibble::tibble(
 		estimate = observed,
-		p_value = (sum(abs(null) >= abs(observed), na.rm = TRUE) + 1) / (permutations + 1),
+		p_value = if (is.na(observed)) {
+			NA_real_
+		} else {
+			(sum(abs(null) >= abs(observed), na.rm = TRUE) + 1) / (permutations + 1)
+		},
 		permutations = permutations,
-		method = paste0("mantel_", method)
+		n_pairs = sum(complete),
+		method = paste0("stratified_mantel_", method)
 	)
 }
 
@@ -201,15 +294,14 @@ compare_distance_matrices <- function(distances_by_subtype, settings = make_anal
 				m1 <- pair[[1]]
 				m2 <- pair[[2]]
 				aligned <- align_distance_matrices(distances[[m1]], distances[[m2]])
+				x <- lower_triangle_values(aligned$mat1)
+				y <- lower_triangle_values(aligned$mat2)
+				complete <- stats::complete.cases(x, y)
 				descriptive <- tibble::tibble(
-					estimate = stats::cor(
-						lower_triangle_values(aligned$mat1),
-						lower_triangle_values(aligned$mat2),
-						method = "pearson",
-						use = "complete.obs"
-					),
+					estimate = stats::cor(x[complete], y[complete], method = "pearson"),
 					p_value = NA_real_,
 					permutations = NA_integer_,
+					n_pairs = sum(complete),
 					method = "descriptive_pearson"
 				)
 				mantel <- mantel_permutation_test(

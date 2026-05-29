@@ -111,6 +111,184 @@ write_correlation_plot <- function(
 	path
 }
 
+make_cophenetic_pair_table <- function(
+		distances_with_tree_by_subtype,
+		comparison_method,
+		subtypes = names(distances_with_tree_by_subtype)
+	) {
+	selected <- distances_with_tree_by_subtype[subtypes]
+	purrr::imap_dfr(
+		selected,
+		\(distances, subtype) {
+			if (!all(c("cophenetic", comparison_method) %in% names(distances))) {
+				stop(
+					"Distance set for ",
+					subtype,
+					" must include cophenetic and ",
+					comparison_method,
+					" matrices.",
+					call. = FALSE
+				)
+			}
+			paired_lower_triangle_distances(
+				distances$cophenetic,
+				distances[[comparison_method]],
+				subtype = subtype,
+				x_name = "cophenetic",
+				y_name = "distance"
+			)
+		}
+	)
+}
+
+summarise_cophenetic_mantel <- function(
+		distances_with_tree_by_subtype,
+		comparison_method,
+		comparison_label,
+		scope,
+		settings,
+		seed_offset = 0L,
+		subtype = NULL
+	) {
+	perm_seed <- settings$seed + seed_offset
+	ci_seed <- settings$seed + 10000L + seed_offset
+
+	if (is.null(subtype)) {
+		selected <- distances_with_tree_by_subtype
+		mantel <- stratified_mantel_permutation_test(
+			selected,
+			"cophenetic",
+			comparison_method,
+			permutations = settings$mantel_permutations,
+			seed = perm_seed,
+			method = "pearson"
+		)
+		pair_data <- make_cophenetic_pair_table(selected, comparison_method)
+	} else {
+		selected <- distances_with_tree_by_subtype[subtype]
+		mantel <- mantel_permutation_test(
+			selected[[subtype]]$cophenetic,
+			selected[[subtype]][[comparison_method]],
+			permutations = settings$mantel_permutations,
+			seed = perm_seed,
+			method = "pearson"
+		)
+		pair_data <- make_cophenetic_pair_table(selected, comparison_method)
+	}
+
+	ci <- correlation_ci(
+		pair_data,
+		estimate = mantel$estimate,
+		reps = settings$mantel_bootstrap_reps,
+		conf_level = settings$correlation_ci_level,
+		seed = ci_seed
+	)
+
+	tibble::tibble(
+		method = comparison_method,
+		Comparison = comparison_label,
+		Scope = scope,
+		`Pairwise comparisons` = mantel$n_pairs,
+		`Mantel r` = mantel$estimate,
+		`CI lower` = ci$ci_lower,
+		`CI upper` = ci$ci_upper,
+		`Permutation p-value` = mantel$p_value,
+		Permutations = mantel$permutations,
+		`Bootstrap draws` = settings$mantel_bootstrap_reps,
+		`CI method` = ci$ci_method,
+		`Permutation seed` = perm_seed,
+		`Bootstrap seed` = ci_seed
+	)
+}
+
+calculate_cophenetic_mantel_summary <- function(
+		distances_with_tree_by_subtype,
+		settings = make_analysis_settings()
+	) {
+	method_labels <- distance_method_labels()
+	scopes <- tibble::tibble(
+		Scope = c("Overall", "H1N1", "H3N2"),
+		subtype = c(NA_character_, "h1", "h3"),
+		scope_index = seq_len(3)
+	)
+
+	purrr::imap_dfr(
+		method_labels,
+		\(comparison_label, comparison_method) {
+			method_index <- match(comparison_method, names(method_labels))
+			purrr::pmap_dfr(
+				scopes,
+				\(Scope, subtype, scope_index) summarise_cophenetic_mantel(
+					distances_with_tree_by_subtype,
+					comparison_method = comparison_method,
+					comparison_label = comparison_label,
+					scope = Scope,
+					settings = settings,
+					seed_offset = 1000L * scope_index + method_index,
+					subtype = if (is.na(subtype)) NULL else subtype
+				)
+			)
+		}
+	) |>
+		dplyr::mutate(
+			Comparison = factor(.data$Comparison, levels = unname(method_labels)),
+			Scope = factor(.data$Scope, levels = c("Overall", "H1N1", "H3N2"))
+		) |>
+		dplyr::arrange(.data$Comparison, .data$Scope) |>
+		dplyr::mutate(
+			Comparison = as.character(.data$Comparison),
+			Scope = as.character(.data$Scope)
+		)
+}
+
+format_p_value <- function(p_value) {
+	dplyr::case_when(
+		is.na(p_value) ~ "NA",
+		p_value < 0.001 ~ "< 0.001",
+		TRUE ~ sprintf("%.3f", p_value)
+	)
+}
+
+make_cophenetic_mantel_table <- function(cophenetic_mantel_summary) {
+	cophenetic_mantel_summary |>
+		dplyr::mutate(
+			`Mantel r` = sprintf("%.2f", .data$`Mantel r`),
+			`95% CI` = paste0(
+				"(",
+				sprintf("%.2f", .data$`CI lower`),
+				", ",
+				sprintf("%.2f", .data$`CI upper`),
+				")"
+			),
+			`Permutation p-value` = format_p_value(.data$`Permutation p-value`)
+		) |>
+		dplyr::select(
+			"Comparison",
+			"Scope",
+			"Pairwise comparisons",
+			"Mantel r",
+			"95% CI",
+			"Permutation p-value",
+			"Permutations"
+		) |>
+		flextable::flextable() |>
+		flextable::merge_v(j = "Comparison") |>
+		flextable::valign(j = "Comparison", valign = "top") |>
+		flextable::fix_border_issues() |>
+		flextable::autofit() |>
+		flextable::set_caption(paste0(
+			"Mantel correlations between each distance metric and ML-tree ",
+			"cophenetic distance, using unique off-diagonal strain pairs. ",
+			"Intervals are 95% Bayesian bootstrap intervals over sampled strains; ",
+			"p-values are two-sided matrix-permutation p-values."
+		))
+}
+
+write_cophenetic_mantel_table <- function(cophenetic_mantel_summary, path) {
+	table <- make_cophenetic_mantel_table(cophenetic_mantel_summary)
+	write_rds_target(table, path)
+}
+
 weighted_pearson_correlation <- function(x, y, weights = NULL) {
 	complete <- if (is.null(weights)) {
 		stats::complete.cases(x, y)

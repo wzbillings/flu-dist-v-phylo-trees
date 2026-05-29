@@ -240,6 +240,26 @@ list(
 		format = "file"
 	),
 	tar_target(
+		cophenetic_mantel_summary,
+		calculate_cophenetic_mantel_summary(distances_with_tree_by_subtype, analysis_settings)
+	),
+	tar_target(
+		cophenetic_mantel_summary_file,
+		write_rds_target(
+			cophenetic_mantel_summary,
+			"results/derived/cophenetic-mantel-summary.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_mantel_table_file,
+		write_cophenetic_mantel_table(
+			cophenetic_mantel_summary,
+			"results/Tables/distance-mantel-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
 		cophenetic_correlation_summary,
 		calculate_cophenetic_correlation_summary(full_distance_table, analysis_settings)
 	),
@@ -247,7 +267,7 @@ list(
 		cophenetic_correlation_summary_file,
 		write_rds_target(
 			cophenetic_correlation_summary,
-			"results/derived/cophenetic-correlation-summary.rds"
+			"results/derived/descriptive-pearson-cophenetic-correlation-summary.rds"
 		),
 		format = "file"
 	),
@@ -255,7 +275,7 @@ list(
 		cophenetic_correlation_table_file,
 		write_cophenetic_correlation_table(
 			cophenetic_correlation_summary,
-			"results/Tables/distance-correlation-table.rds"
+			"results/Tables/descriptive-pearson-distance-correlation-table.rds"
 		),
 		format = "file"
 	),
@@ -290,6 +310,7 @@ list(
 	
 	# Quarto manuscript render.
 	tar_target(manuscript_qmd, "products/manuscript.qmd", format = "file"),
+	tar_target(supplement_qmd, "products/supplement.qmd", format = "file"),
 	tar_target(bibliography_file, "products/project-refs.bib", format = "file"),
 	tar_target(csl_file, "products/plos-computational-biology.csl", format = "file"),
 	tar_target(
@@ -298,8 +319,20 @@ list(
 			manuscript_qmd,
 			correlation_plot_file,
 			combined_ml_tree_plot_file,
-			cophenetic_correlation_table_file,
+			cophenetic_mantel_table_file,
 			stat_table_file,
+			bibliography_file,
+			csl_file
+		),
+		format = "file"
+	),
+	tar_target(
+		supplement_docx,
+		render_quarto_supplement(
+			supplement_qmd,
+			cophenetic_mantel_summary_file,
+			cophenetic_mantel_table_file,
+			cophenetic_correlation_table_file,
 			bibliography_file,
 			csl_file
 		),

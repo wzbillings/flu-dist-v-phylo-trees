@@ -19,7 +19,9 @@ The implemented tests cover fast deterministic behavior:
 - toy-data behavior for sequence cleaning and sequence-cleaning audits;
 - p-epitope site lookup and basic p-epitope distance-matrix structure;
 - lightweight manuscript/table helper functions that do not render plots, tables, or documents;
-- strain-level bootstrap helper behavior for distance-correlation intervals.
+- strain-level bootstrap helper behavior for distance-correlation intervals;
+- Mantel matrix-comparison summaries that exclude diagonal and duplicate
+  distance-matrix entries.
 
 The tests intentionally do not cover:
 
@@ -44,10 +46,10 @@ Assumptions:
 - `tests/logs/.gitignore`: keeps generated Markdown test-run logs out of version control by default.
 - `tests/testthat/test-utils.R`: tests general validation, normalization, matrix reshaping, strain-name replacement, temporal distances, seeded perturbations, and analysis settings.
 - `tests/testthat/test-data-processing.R`: tests sequence cleaning, subtype splitting, duplicate metadata detection, and cleaning-audit summaries with inline toy data.
-- `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, vector normalization, shared-strain alignment, and a small deterministic Mantel permutation result structure.
+- `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, vector normalization, shared-strain alignment, unique off-diagonal pair extraction, and small deterministic Mantel permutation result structures.
 - `tests/testthat/test-grantham-distance.R`: tests canonical Grantham matrix values, per-comparable-site averaging, explicit gap/ambiguous residue exclusion, and named symmetric matrix output.
 - `tests/testthat/test-p-epitope-calculator.R`: tests p-epitope site lookup, invalid subtype handling, and basic p-epitope distance-matrix properties.
-- `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, weighted correlations, Fisher/Wald confidence interval guardrails, and strain-level bootstrap weighting helpers.
+- `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, weighted correlations, Fisher/Wald confidence interval guardrails, strain-level bootstrap weighting helpers, and manuscript-ready Mantel summary structure.
 
 ## How to run the tests
 

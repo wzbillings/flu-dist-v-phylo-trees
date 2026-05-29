@@ -1,0 +1,123 @@
+---
+title: |
+  Supplementary Material:
+  Comparing antigenic distance metrics for influenza
+format:
+  docx:
+    toc: true
+    number-sections: true
+bibliography: project-refs.bib
+csl: plos-computational-biology.csl
+execute:
+  echo: false
+  message: false
+  warning: false
+lang: en-US
+editor_options:
+  chunk_output_type: console
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(flextable)
+
+options(knitr.graphics.rel_path = FALSE)
+
+fit_flextable_to_page <- function(tbl, page_width = 6.5) {
+	ft_out <- flextable::autofit(tbl)
+	ft_width <- (dim(ft_out)$widths * page_width) /
+		flextable::flextable_dim(ft_out)$widths
+	flextable::width(ft_out, width = ft_width)
+}
+```
+
+# Reproducibility Instructions
+
+The analysis is organized as a `targets` pipeline. From the repository root,
+restore the project environment with `renv::restore()` if needed, then run the
+pipeline with:
+
+```r
+targets::tar_make()
+```
+
+The pipeline defaults to `FLU_TARGETS_MODE=test`, which uses reduced stochastic
+settings for development checks. Publication-scale settings are selected by
+setting `FLU_TARGETS_MODE=full` before running the pipeline. The Mantel
+correlation table in the main manuscript is generated from
+`cophenetic_mantel_summary`, written to
+`results/derived/cophenetic-mantel-summary.rds`, and rendered as
+`results/Tables/distance-mantel-table.rds`.
+
+# Distance-Matrix Comparison Details
+
+The primary manuscript table reports Mantel correlations between ML-tree
+cophenetic distance and each candidate distance metric. These tests use only
+unique off-diagonal strain pairs. Duplicate symmetric distances and diagonal
+self-comparisons are excluded before estimating the observed correlation,
+Bayesian bootstrap interval, and matrix-permutation p-value.
+
+For the overall rows, permutation is stratified by subtype: H1N1 and H3N2 labels
+are permuted within subtype, then the unique-pair vectors are concatenated for
+the overall Mantel statistic. Bayesian bootstrap intervals are resampled over
+strain units and are separate from the permutation p-values. We do not report
+Bayesian-bootstrap tail probabilities as p-values because the permutation
+p-values are the pre-specified apparent-sample test for matrix correspondence.
+
+```{r}
+#| label: tbl-mantel-settings
+#| tbl-cap: |
+#|   Mantel correlation computation settings. Seeds are row-specific so that
+#|   each comparison and reporting scope is reproducible.
+
+here::here("results", "derived", "cophenetic-mantel-summary.rds") |>
+	readr::read_rds() |>
+	dplyr::select(
+		"Comparison",
+		"Scope",
+		"Permutations",
+		"Bootstrap draws",
+		"CI method",
+		"Permutation seed",
+		"Bootstrap seed"
+	) |>
+	flextable::flextable() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-mantel-main-copy
+#| tbl-cap: |
+#|   Main Mantel correlation table reproduced for reference.
+
+here::here("results", "Tables", "distance-mantel-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+## Descriptive Pearson Correlations
+
+The Pearson correlations in @tbl-pearson-correlations are descriptive summaries
+of the same unique off-diagonal pair representation used for the Mantel
+analysis. They are included to help interpret the approximate linear agreement
+between distance scales, but they are not used as independent-observation
+inference.
+
+```{r}
+#| label: tbl-pearson-correlations
+#| tbl-cap: |
+#|   Descriptive Pearson correlations between each distance metric and
+#|   ML-tree cophenetic distance, overall and by subtype. Intervals are
+#|   strain-level bootstrap intervals and should be interpreted descriptively.
+
+here::here("results", "Tables", "descriptive-pearson-distance-correlation-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+# References
+
+::: {#refs}
+:::
