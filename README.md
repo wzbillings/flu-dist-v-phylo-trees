@@ -12,6 +12,6 @@ In this repo I:
 - built maximum likelihood trees for the sequences we included.
 - compared the phylogenetic ML trees to the neighbor joining trees.
 
-In general, cartography and evolutionary trees seem to tell a different story -- which is not straightforward. We expect antigenic innovations to evolve due to selective pressure in the population, but the genetic evolutionary tree cannot be reconstructed by cartography. Hamming distance, temporal distance, and $p$-Epitope distance beuild much more similar trees to the phylogenetic tree, implying that cartography is again capturing something unique (or maybe there are unanswered questions about cartography).
+In general, cartography and evolutionary trees seem to tell a different story -- which is not straightforward. We expect antigenic innovations to evolve due to selective pressure in the population, but the genetic evolutionary tree cannot be reconstructed by cartography. Grantham distance, temporal distance, and $p$-Epitope distance build much more similar trees to the phylogenetic tree, implying that cartography is again capturing something unique (or maybe there are unanswered questions about cartography).
 
 Anyways, please contact me if you are interested in this work!

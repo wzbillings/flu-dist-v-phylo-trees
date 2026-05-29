@@ -464,3 +464,106 @@ unseeded full-matrix perturbation.
 
 **Impact:** Tree-building remains compatible with the existing p-epitope
 distance workflow while making the stochastic adjustment auditable.
+
+## 2026-05-29 - Figure 1 Normalization and Correlation Table
+
+**Decision:** Figure 1 should show min-max normalized distance values and use a
+colorblind-friendly subtype palette to distinguish H1N1 and H3N2. Correlation
+numbers should be removed from the figure and reported in a separate table with
+overall and subtype-specific descriptive Pearson correlations for each distance
+metric versus ML-tree cophenetic distance.
+
+**Rationale:** Normalization improves visual comparability across distance
+metrics without changing correlations under a global positive linear
+transformation. Moving correlation estimates to a table keeps the figure
+visually cleaner and avoids repeating all pairwise matrix correlations.
+
+**Evidence / citation:** User request on 2026-05-29; implementation in
+`R/plots-and-tables.R` and `_targets.R`.
+
+**Alternatives considered:** Keep unnormalized axes and in-panel labels; report
+all pairwise correlations among distance metrics.
+
+**Impact:** Figure 1 is a comparative visualization rather than a numeric
+results table. The separate table should be used for exact reported
+correlations.
+
+## 2026-05-29 - Correlation Confidence Intervals
+
+**Decision:** The distance-versus-cophenetic correlation table should include
+95% intervals. The pipeline should use Bayesian bootstrap percentile intervals
+through `bayesboot` when available, fall back to BCa intervals through `boot`,
+and finally fall back to Fisher-z/Wald intervals if neither bootstrap path is
+available.
+
+**Rationale:** The interval calculation should be reproducible and explicit,
+while still allowing the pipeline to run if optional bootstrap packages are not
+available. The intervals are descriptive for unique off-diagonal strain pairs
+and should not be interpreted as fully accounting for all matrix dependence.
+
+**Evidence / citation:** User request on 2026-05-29; implementation in
+`R/plots-and-tables.R`, `_targets.R`, and `renv.lock`.
+
+**Alternatives considered:** Report point estimates only, use only Wald-type
+intervals, or block the pipeline if `bayesboot` is unavailable.
+
+**Impact:** Table output now records the interval method in the derived summary
+object. Manuscript interpretation should describe these as descriptive
+correlation intervals unless a stronger matrix-aware inference is later added.
+
+## 2026-05-29 - Strain-Level Bootstrap Correlation Intervals
+
+**Decision:** Treat the H1N1/H3N2 strains as a sample from a broader strain
+universe for correlation-interval estimation. Bootstrap uncertainty should be
+computed over strain units, not over individual pairwise distance rows. For
+overall correlations, the bootstrap is stratified by subtype so the observed
+H1N1/H3N2 pair contribution is preserved in each replicate.
+
+**Rationale:** Pairwise distance rows are not independent because each strain
+appears in multiple pairs. Drawing Bayesian-bootstrap weights over strains and
+propagating them to pairwise distances as endpoint-weight products better
+matches the intended sampling interpretation.
+
+**Evidence / citation:** User clarification on 2026-05-29 that the strains
+represent a broader universe; implementation in `R/plots-and-tables.R`.
+
+**Alternatives considered:** Keep bootstrapping pairwise rows, use unstratified
+strain weights for the overall rows, or report only Mantel-style permutation
+tests without confidence intervals.
+
+**Impact:** Correlation intervals now represent uncertainty under a
+strain-sampling estimand. Point estimates are unchanged, but interval widths may
+differ from row-level pairwise bootstraps because matrix dependence is now
+represented in the resampling procedure.
+
+## 2026-05-29 - Replace Primary Hamming Distance with Grantham Distance
+
+**Decision:** Replace the primary whole-sequence Hamming distance metric with a
+local Grantham amino-acid distance metric. Keep temporal distance, Grantham
+distance, p-epitope distance, cartographic distance, and ML-tree cophenetic
+distance as the primary comparison set.
+
+**Rationale:** Prior work in this project indicated that whole-sequence Hamming
+distance and p-epitope distance were highly correlated, making Hamming distance a
+less informative additional primary metric. Grantham distance preserves a
+whole-sequence amino-acid comparison while weighting substitutions by
+physicochemical difference. The local implementation avoids adding an
+unnecessary dependency and reports a per-comparable-site mean distance so pairs
+with different numbers of gaps or ambiguous residues remain comparable.
+
+**Evidence / citation:** Grantham R. 1974. Amino acid difference formula to help
+explain protein evolution. Science 185(4154):862-864. DOI:
+10.1126/science.185.4154.862. The `ahgroup/agdist` package documentation was
+consulted as a reference implementation; both `agdist` and this repository use
+AGPL-3.0-compatible licensing, but the needed Grantham functionality was
+implemented locally in `R/grantham-distance.R`.
+
+**Alternatives considered:** Keep Hamming distance as a co-primary sequence
+metric, add `agdist` as a dependency, or compute summed rather than averaged
+Grantham distances. These were rejected because the task is to replace Hamming,
+the required functionality is small, and summed distances would be harder to
+compare across pairs with different numbers of comparable aligned sites.
+
+**Impact:** Main distance outputs, figures, tables, and manuscript terminology
+now use Grantham distance instead of Hamming distance. p-epitope distance remains
+in the primary analysis.

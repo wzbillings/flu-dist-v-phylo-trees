@@ -102,9 +102,8 @@ pepitope <- function(seq_1, seq_2, subtype) {
 	epi_dists <-
 		purrr::map_dbl(
 			p_epi_sites,
-			# This function looks kind of weird because doing this calculation is
-			# really annoying to make sure the Hamming dist is the same as the
-			# overall Hamming dist and treats special chars the same.
+			# p-epitope is an epitope-level mismatch proportion; this route keeps
+			# special-character handling consistent across epitope subsets.
 			# First we subset the two strings to only contain residues from the
 			# current epitope.
 			\(current_sites) list(
@@ -114,7 +113,7 @@ pepitope <- function(seq_1, seq_2, subtype) {
 				# Then we convert into an arbitrary format that phangorn likes, because
 				# it likes this thing but doesn't like the list of sequences
 				ape::as.AAbin() |>
-				# Then we can use phangorn to compute the hamming dist for the current
+				# Then use phangorn's amino-acid distance routine for the current
 				# epitope sequences.
 				phangorn::dist.hamming()
 		)

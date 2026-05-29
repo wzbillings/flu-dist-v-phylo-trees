@@ -9,13 +9,13 @@ align_subtype_sequences <- function(clean_sequences, subtype, settings = make_an
 		c("subtype", "short_name", "nucleotide_sequence", "protein_sequence"),
 		"clean sequences"
 	)
-	subtype <- stringr::str_to_lower(subtype)
+	subtype_requested <- stringr::str_to_lower(subtype)
 	subtype_data <- clean_sequences |>
-		dplyr::filter(.data$subtype == subtype) |>
+		dplyr::filter(.data$subtype == subtype_requested) |>
 		dplyr::arrange(.data$factor_order)
 	
 	if (nrow(subtype_data) == 0) {
-		stop("No sequences found for subtype: ", subtype, call. = FALSE)
+		stop("No sequences found for subtype: ", subtype_requested, call. = FALSE)
 	}
 	
 	nucleotide_sequences <- with(
@@ -52,7 +52,7 @@ align_subtype_sequences <- function(clean_sequences, subtype, settings = make_an
 	)
 	
 	list(
-		subtype = subtype,
+		subtype = subtype_requested,
 		nucleotide_msa = nucleotide_msa,
 		protein_msa = protein_msa,
 		aligned_sequences = aligned_sequences
