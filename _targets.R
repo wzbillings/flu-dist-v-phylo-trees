@@ -234,9 +234,28 @@ list(
 		correlation_plot_file,
 		write_correlation_plot(
 			full_distance_table,
-			distance_comparisons_with_tree,
 			"results/Figures/corr-plot.png",
 			analysis_settings
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_correlation_summary,
+		calculate_cophenetic_correlation_summary(full_distance_table, analysis_settings)
+	),
+	tar_target(
+		cophenetic_correlation_summary_file,
+		write_rds_target(
+			cophenetic_correlation_summary,
+			"results/derived/cophenetic-correlation-summary.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_correlation_table_file,
+		write_cophenetic_correlation_table(
+			cophenetic_correlation_summary,
+			"results/Tables/distance-correlation-table.rds"
 		),
 		format = "file"
 	),
@@ -279,6 +298,7 @@ list(
 			manuscript_qmd,
 			correlation_plot_file,
 			combined_ml_tree_plot_file,
+			cophenetic_correlation_table_file,
 			stat_table_file,
 			bibliography_file,
 			csl_file

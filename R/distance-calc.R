@@ -13,12 +13,6 @@ extract_aligned_proteins <- function(alignment_result) {
 	seqs
 }
 
-calculate_hamming_distance <- function(protein_phydat) {
-	protein_phydat |>
-		phangorn::dist.hamming() |>
-		as.matrix()
-}
-
 calculate_pepitope_distance <- function(aligned_proteins, subtype) {
 	dist.pepi(aligned_proteins, subtype = subtype)
 }
@@ -51,12 +45,11 @@ calculate_subtype_distances <- function(
 		virus_metadata
 	) {
 	subtype <- alignment_result$subtype
-	protein_phydat <- as_protein_phydat(alignment_result)
 	aligned_proteins <- extract_aligned_proteins(alignment_result)
 	
 	distances <- list(
 		year = dist_year(names(aligned_proteins), virus_info = virus_metadata),
-		hamming = calculate_hamming_distance(protein_phydat),
+		grantham = calculate_grantham_distance(aligned_proteins),
 		pepi = calculate_pepitope_distance(aligned_proteins, subtype = subtype),
 		cart = calculate_cartography_distance(cartography_map, virus_metadata)
 	)

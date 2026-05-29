@@ -85,6 +85,8 @@ validate_distance_matrix <- function(mat, label = "distance matrix") {
 
 tidy_dist_mat <- function(d, unique_pairs = FALSE, include_diagonal = TRUE) {
 	validate_distance_matrix(d)
+	row_names <- rownames(d)
+	col_names <- colnames(d)
 	out <- d |>
 		tibble::as_tibble(rownames = "Var1") |>
 		tidyr::pivot_longer(
@@ -95,8 +97,8 @@ tidy_dist_mat <- function(d, unique_pairs = FALSE, include_diagonal = TRUE) {
 		dplyr::mutate(
 			Var1 = as.character(.data$Var1),
 			Var2 = as.character(.data$Var2),
-			.row_index = match(.data$Var1, rownames(d)),
-			.col_index = match(.data$Var2, colnames(d))
+			.row_index = match(.data$Var1, row_names),
+			.col_index = match(.data$Var2, col_names)
 		)
 	
 	if (isTRUE(unique_pairs)) {
@@ -258,6 +260,8 @@ make_analysis_settings <- function(mode = Sys.getenv("FLU_TARGETS_MODE", "test")
 		tree_model_fast = "FLU",
 		sh_bootstrap = if (is_test) 100L else 1000000L,
 		mantel_permutations = if (is_test) 99L else 9999L,
+		correlation_bootstrap_reps = if (is_test) 1000L else 4000L,
+		correlation_ci_level = 0.95,
 		pepi_perturbation_magnitude = 0.01,
 		pepi_perturbation_seed = 370L,
 		jitter_seed = 132413L
