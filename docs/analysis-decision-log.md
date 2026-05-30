@@ -4,6 +4,35 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-05-30 - Subtype Contrast for Matrix-Association Estimates
+
+**Decision:** Quantify subtype differences in distance-metric performance as
+the H3N2 Mantel correlation minus the H1N1 Mantel correlation for each distance
+metric. The primary uncertainty interval should use a Bayesian bootstrap over
+strain units via `bayesboot`. Fisher-z and independent Mantel permutation
+contrast calculations should be reported in the supplement as sensitivity
+analyses, not as the primary estimand.
+
+**Rationale:** Subtype-specific differences are central to the manuscript, and
+the contrast should preserve the already-approved matrix-association framework
+without treating individual pairwise distances as independent observations. The
+Fisher-z sensitivity is familiar but overconfident for pairwise matrices, while
+the permutation sensitivity is matrix-aware but tests a different
+no-association null rather than direct equality of subtype-specific
+correlations.
+
+**Evidence / citation:** Human approval in chat on 2026-05-30; Mantel and
+Bayesian-bootstrap methods cited in the manuscript and supplement.
+
+**Alternatives considered:** Descriptive differences only, Fisher-z
+approximation as the primary method, and permutation contrast as the primary
+method.
+
+**Impact:** The targets pipeline should produce a main-table and contrast plot
+for H3N2-minus-H1N1 Mantel differences, plus supplement-ready sensitivity
+summaries. Main-text wording should remain cautious and strain-panel-specific
+until full-mode results and manuscript revisions are complete.
+
 ## 2026-05-29 - Manuscript Identity and Rebuild Strategy
 
 **Decision:** The project will be expanded and revised into a publishable

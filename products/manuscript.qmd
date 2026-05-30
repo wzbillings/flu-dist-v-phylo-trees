@@ -81,8 +81,11 @@ permutation p-values [@legendre2010MantelAlternatives;
 @legendre2015ShouldMantel]. These comparisons used only unique off-diagonal
 strain pairs, excluding duplicate symmetric distances and self-comparisons.
 We estimated 95% intervals for the Mantel statistic using Bayesian bootstrap
-resampling over strain units. Descriptive Pearson correlations using the same
-unique off-diagonal pair representation are reported in the supplement for
+resampling over strain units [@rubin1981]. To quantify subtype differences,
+we subtracted the H1N1 Mantel correlation from the H3N2 Mantel correlation for
+each distance metric, with uncertainty estimated by the same strain-level
+Bayesian bootstrap. Descriptive Pearson correlations using the same unique
+off-diagonal pair representation are reported in the supplement for
 interpretability.
 
 For each of the four distance metrics, we also built distance-based trees using
@@ -125,6 +128,32 @@ knitr::include_graphics(here::here("results", "Figures", "corr-plot.png"))
 #|   p-values for the observed strain panel.
 
 here::here("results", "Tables", "distance-mantel-table.rds") |>
+	readr::read_rds()
+```
+
+Subtype contrasts quantify these patterns directly (@fig-subtype-contrasts;
+@tbl-subtype-contrasts). Temporal distance and cartographic distance had larger
+H3N2-than-H1N1 Mantel correlations in this strain panel, while the
+sequence-derived contrasts were smaller.
+
+```{r}
+#| label: fig-subtype-contrasts
+#| fig-cap: |
+#|   Subtype contrasts in Mantel correlation between each distance metric and
+#|   ML-tree cophenetic distance. Points are H3N2 minus H1N1 differences, with
+#|   95% Bayesian bootstrap intervals over strain units.
+
+knitr::include_graphics(here::here("results", "Figures", "subtype-mantel-contrast-plot.png"))
+```
+
+```{r}
+#| label: tbl-subtype-contrasts
+#| tbl-cap: |
+#|   H1N1 and H3N2 Mantel correlations and their subtype contrast for each
+#|   distance metric. Differences are H3N2 minus H1N1. Intervals are Bayesian
+#|   bootstrap 95% intervals over strain units.
+
+here::here("results", "Tables", "subtype-mantel-contrast-table.rds") |>
 	readr::read_rds()
 ```
 
