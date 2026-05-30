@@ -65,6 +65,28 @@ test_that("subtype contrast sensitivity summaries report Fisher and permutation 
 	expect_true(all(nzchar(out$Interpretation)))
 })
 
+test_that("permutation contrast sensitivity returns NA when the observed contrast is undefined", {
+	skip_if_not_installed("tibble")
+
+	cophenetic <- toy_contrast_matrix(c(1, 2, 3, 4, 5, 6))
+	constant <- toy_contrast_matrix(rep(1, 6))
+	distances <- list(
+		h1 = list(cophenetic = cophenetic, year = constant),
+		h3 = list(cophenetic = cophenetic, year = cophenetic)
+	)
+
+	out <- permutation_subtype_contrast_sensitivity(
+		distances,
+		comparison_method = "year",
+		observed_difference = NA_real_,
+		permutations = 9L,
+		seed = 370L
+	)
+
+	expect_equal(out$statistic, NA_real_)
+	expect_equal(out$p_value, NA_real_)
+})
+
 test_that("subtype contrast table and plot constructors return manuscript-ready objects", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")

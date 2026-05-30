@@ -182,6 +182,9 @@ permutation_subtype_contrast_sensitivity <- function(
 		permutations,
 		seed
 	) {
+	if (is.na(observed_difference)) {
+		return(tibble::tibble(statistic = NA_real_, p_value = NA_real_))
+	}
 	null <- with_seed(seed, {
 		replicate(permutations, {
 			permuted_subtype_mantel_estimate(
