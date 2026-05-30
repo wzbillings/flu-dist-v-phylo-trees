@@ -260,6 +260,60 @@ list(
 		format = "file"
 	),
 	tar_target(
+		cophenetic_subtype_contrast_summary,
+		calculate_cophenetic_subtype_contrast_summary(
+			distances_with_tree_by_subtype,
+			analysis_settings
+		)
+	),
+	tar_target(
+		cophenetic_subtype_contrast_summary_file,
+		write_rds_target(
+			cophenetic_subtype_contrast_summary,
+			"results/derived/cophenetic-subtype-contrast-summary.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_subtype_contrast_table_file,
+		write_subtype_contrast_table(
+			cophenetic_subtype_contrast_summary,
+			"results/Tables/subtype-mantel-contrast-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_subtype_contrast_plot_file,
+		write_subtype_contrast_plot(
+			cophenetic_subtype_contrast_summary,
+			"results/Figures/subtype-mantel-contrast-plot.png"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_subtype_contrast_sensitivity,
+		calculate_cophenetic_subtype_contrast_sensitivity(
+			distances_with_tree_by_subtype,
+			analysis_settings
+		)
+	),
+	tar_target(
+		cophenetic_subtype_contrast_sensitivity_file,
+		write_rds_target(
+			cophenetic_subtype_contrast_sensitivity,
+			"results/derived/cophenetic-subtype-contrast-sensitivity.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_subtype_contrast_sensitivity_table_file,
+		write_subtype_contrast_sensitivity_table(
+			cophenetic_subtype_contrast_sensitivity,
+			"results/Tables/subtype-mantel-contrast-sensitivity-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
 		cophenetic_correlation_summary,
 		calculate_cophenetic_correlation_summary(full_distance_table, analysis_settings)
 	),
@@ -320,6 +374,8 @@ list(
 			correlation_plot_file,
 			combined_ml_tree_plot_file,
 			cophenetic_mantel_table_file,
+			cophenetic_subtype_contrast_table_file,
+			cophenetic_subtype_contrast_plot_file,
 			stat_table_file,
 			bibliography_file,
 			csl_file
@@ -332,6 +388,10 @@ list(
 			supplement_qmd,
 			cophenetic_mantel_summary_file,
 			cophenetic_mantel_table_file,
+			cophenetic_subtype_contrast_summary_file,
+			cophenetic_subtype_contrast_table_file,
+			cophenetic_subtype_contrast_sensitivity_file,
+			cophenetic_subtype_contrast_sensitivity_table_file,
 			cophenetic_correlation_table_file,
 			bibliography_file,
 			csl_file

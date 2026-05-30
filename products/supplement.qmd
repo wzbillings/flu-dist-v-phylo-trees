@@ -97,6 +97,81 @@ here::here("results", "Tables", "distance-mantel-table.rds") |>
 	fit_flextable_to_page()
 ```
 
+## Subtype Contrast Analysis
+
+For each distance metric, the primary subtype contrast is defined as the H3N2
+Mantel correlation minus the H1N1 Mantel correlation. The Mantel correlations
+use the same unique off-diagonal strain-pair representation as the main
+distance-matrix table. Uncertainty is estimated with a Bayesian bootstrap over
+strain units [@rubin1981]. Within each bootstrap draw, strain weights are
+normalized separately within H1N1 and H3N2, pair weights are calculated as the
+product of the two endpoint strain weights, and the weighted H3N2-minus-H1N1
+contrast is recomputed.
+
+The primary contrast answers a strain-sampling question: how uncertain is the
+observed subtype difference if the strains are treated as sampled units from a
+broader strain universe? We also report two sensitivity analyses that answer
+different questions. The Fisher-z approximation [@fisher1921] treats the
+unique strain pairs as independent observations, so it is expected to be
+overconfident because each strain contributes to many pairs. The independent
+Mantel permutation contrast permutes matrix labels within each subtype and
+compares the observed contrast against a joint no-association null; it is useful
+as a matrix-aware sensitivity check, but it is not a direct test of equality
+between subtype-specific Mantel correlations. Differences among these
+summaries can therefore be driven by pairwise non-independence, different
+effective sample sizes across subtypes, and the fact that the permutation
+sensitivity asks a different null-hypothesis question than the bootstrap
+interval.
+
+In practice, the Fisher-z sensitivity should usually look more decisive than
+the primary bootstrap interval because it uses the 153 H1N1 and 210 H3N2
+pairwise distances as if they were independent observations. The permutation
+sensitivity may also differ from the bootstrap interval: for example, it can
+flag large temporal or cartographic contrasts against a no-association null
+while not flagging smaller contrasts between two already-high subtype-specific
+matrix associations.
+
+```{r}
+#| label: tbl-subtype-contrast-settings
+#| tbl-cap: |
+#|   Subtype contrast bootstrap settings. Seeds are row-specific so that each
+#|   contrast is reproducible.
+
+here::here("results", "derived", "cophenetic-subtype-contrast-summary.rds") |>
+	readr::read_rds() |>
+	dplyr::select(
+		"Comparison",
+		"Bootstrap draws",
+		"CI method",
+		"Bootstrap seed"
+	) |>
+	flextable::flextable() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-subtype-contrast-main-copy
+#| tbl-cap: |
+#|   Main subtype contrast table reproduced for reference.
+
+here::here("results", "Tables", "subtype-mantel-contrast-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-subtype-contrast-sensitivity
+#| tbl-cap: |
+#|   Sensitivity summaries for H3N2-minus-H1N1 subtype contrasts. These
+#|   alternatives are included to show how the contrast behaves under simpler
+#|   Fisher-z and matrix-permutation reference calculations; neither replaces
+#|   the primary strain-bootstrap contrast interval.
+
+here::here("results", "Tables", "subtype-mantel-contrast-sensitivity-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 ## Descriptive Pearson Correlations
 
 The Pearson correlations in @tbl-pearson-correlations are descriptive summaries

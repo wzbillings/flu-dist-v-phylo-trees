@@ -50,6 +50,7 @@ Assumptions:
 - `tests/testthat/test-grantham-distance.R`: tests canonical Grantham matrix values, per-comparable-site averaging, explicit gap/ambiguous residue exclusion, and named symmetric matrix output.
 - `tests/testthat/test-p-epitope-calculator.R`: tests p-epitope site lookup, invalid subtype handling, and basic p-epitope distance-matrix properties.
 - `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, weighted correlations, Fisher/Wald confidence interval guardrails, strain-level bootstrap weighting helpers, and manuscript-ready Mantel summary structure.
+- `tests/testthat/test-subtype-contrast.R`: tests toy-matrix subtype contrast estimates, Bayesian-bootstrap contrast interval structure, Fisher-z and permutation sensitivity summaries, and manuscript-ready subtype contrast table/plot constructors.
 
 ## How to run the tests
 

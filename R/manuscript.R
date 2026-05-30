@@ -45,6 +45,8 @@ render_quarto_manuscript <- function(
 		correlation_plot_file,
 		ml_tree_plot_file,
 		cophenetic_correlation_table_file,
+		subtype_contrast_table_file,
+		subtype_contrast_plot_file,
 		stat_table_file,
 		bibliography_file,
 		csl_file,
@@ -54,6 +56,8 @@ render_quarto_manuscript <- function(
 	validate_file_exists(correlation_plot_file, "correlation figure")
 	validate_file_exists(ml_tree_plot_file, "ML tree figure")
 	validate_file_exists(cophenetic_correlation_table_file, "distance correlation table")
+	validate_file_exists(subtype_contrast_table_file, "subtype contrast table")
+	validate_file_exists(subtype_contrast_plot_file, "subtype contrast figure")
 	validate_file_exists(stat_table_file, "statistical table")
 	validate_file_exists(bibliography_file, "bibliography")
 	validate_file_exists(csl_file, "CSL file")
@@ -65,6 +69,10 @@ render_quarto_supplement <- function(
 		qmd_path,
 		mantel_summary_file,
 		mantel_correlation_table_file,
+		subtype_contrast_summary_file,
+		subtype_contrast_table_file,
+		subtype_contrast_sensitivity_file,
+		subtype_contrast_sensitivity_table_file,
 		pearson_correlation_table_file,
 		bibliography_file,
 		csl_file,
@@ -73,6 +81,10 @@ render_quarto_supplement <- function(
 	validate_file_exists(qmd_path, "supplement qmd")
 	validate_file_exists(mantel_summary_file, "Mantel distance correlation summary")
 	validate_file_exists(mantel_correlation_table_file, "Mantel distance correlation table")
+	validate_file_exists(subtype_contrast_summary_file, "subtype contrast summary")
+	validate_file_exists(subtype_contrast_table_file, "subtype contrast table")
+	validate_file_exists(subtype_contrast_sensitivity_file, "subtype contrast sensitivity summary")
+	validate_file_exists(subtype_contrast_sensitivity_table_file, "subtype contrast sensitivity table")
 	validate_file_exists(pearson_correlation_table_file, "descriptive Pearson distance correlation table")
 	validate_file_exists(bibliography_file, "bibliography")
 	validate_file_exists(csl_file, "CSL file")
