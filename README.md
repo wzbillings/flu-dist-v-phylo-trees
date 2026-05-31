@@ -154,17 +154,15 @@ the license file controls.
 
 ## Disclaimer
 
-The materials in this repository are provided for research workflow support for
-an in-progress influenza manuscript and are not legal, medical, regulatory,
-statistical, or research-ethics advice. They may be incomplete, inappropriate
-for a specific project, or unsuitable for a particular institution, journal,
-funder, dataset, or regulatory setting.
+Most of the code in this repository was generated with assistance from a large language model. All code and related materials were reviewed by a human, but they remain part of an in-progress influenza manuscript and should not be treated as legal, medical, regulatory, statistical, financial, or other professional advice.
 
-Users are responsible for reviewing, adapting, validating, and maintaining any
-analysis code, workflow materials, manuscript text, prompts, scripts, and
-documentation before using them in real research projects. Use appropriate
-human review for scientific claims, statistical methods, privacy protections,
-authorship decisions, citations, compliance requirements, and public releases.
+The materials in this repository may be incomplete, incorrect, outdated, or unsuitable for a specific project, institution, journal, funder, dataset, regulatory context, or research purpose.
+
+Users are responsible for independently reviewing, adapting, validating, and maintaining any analysis code, workflow materials, manuscript text, prompts, scripts, documentation, and other repository contents before using them in real research or public-facing work. Appropriate human review should be applied to scientific claims, statistical methods, privacy protections, authorship decisions, citations, compliance obligations, and public releases.
+
+To the fullest extent permitted by applicable law, the maintainer disclaims responsibility for any loss, harm, liability, or other consequence arising from the use, modification, interpretation, or redistribution of this work by others.
+
+Other listed contributors provided inspiration, advice, or feedback for the project, but they are not responsible for the current contents of this repository unless explicitly stated otherwise.
 
 ## Maintenance and contact
 
