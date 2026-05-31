@@ -1,3 +1,34 @@
-/.quarto/
-.Rproj.user
+# Local R session files.
+.Rhistory
+.RData
+.Ruserdata
+
+# Operating-system and editor clutter.
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# RStudio and workflow caches.
+.Rproj.user/
+.quarto/
 _targets/
+_targets-r/
+
+# Quarto, LaTeX, and temporary build intermediates.
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.tmp

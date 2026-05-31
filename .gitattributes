@@ -1,0 +1,35 @@
+# GitHub Linguist classification for generated and vendored research artifacts.
+
+# Generated pipeline outputs, Quarto caches, and rendered manuscript products.
+_freeze/** linguist-generated=true
+_quarto/** linguist-generated=true
+_targets/** linguist-generated=true
+_targets-r/** linguist-generated=true
+results/** linguist-generated=true
+data/**/*.rds linguist-generated=true
+data/**/*.Rds linguist-generated=true
+products/*.docx linguist-generated=true
+products/*.pdf linguist-generated=true
+products/*.tex linguist-generated=true
+tests/logs/** linguist-generated=true
+renv.lock linguist-generated=true
+
+# Common LaTeX and Quarto build intermediates.
+*.aux linguist-generated=true
+*.bbl linguist-generated=true
+*.bcf linguist-generated=true
+*.blg linguist-generated=true
+*.fdb_latexmk linguist-generated=true
+*.fls linguist-generated=true
+*.lof linguist-generated=true
+*.log linguist-generated=true
+*.lot linguist-generated=true
+*.out linguist-generated=true
+*.run.xml linguist-generated=true
+*.synctex.gz linguist-generated=true
+*.toc linguist-generated=true
+
+# Vendored helper code and external reference formats.
+_extensions/** linguist-vendored=true
+renv/** linguist-vendored=true
+products/*.csl linguist-vendored=true

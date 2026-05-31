@@ -1,17 +1,175 @@
-# Comparing distance-based trees and phylogenetic trees for influenza
+# Comparing antigenic distance metrics for influenza
 
-Contributors: Savannah L. Miller, Murphy H. John, Amanda L. Skarlupka, Ted M. Ross, Justin Bahl, Andreas Handel
+This repository contains the analysis pipeline, manuscript files, and project
+records for an in-progress influenza distance-metrics manuscript. The project
+compares how several ways of measuring pairwise differences between influenza A
+strains relate to maximum-likelihood phylogenetic tree distances for H1N1 and
+H3N2 strain panels.
 
-Developing universal influenza vaccines will require improved understanding of how influenza variants differ from each other. We find that temporal distances perform poorly overall, but even sequence distances which match phylogenetic distances well do not match cartographic distances based on actual immune response data.
+The current goal is to turn an earlier course-project and dissertation-appendix
+analysis into an auditable journal manuscript for influenza vaccine scientists,
+virologists, immunologists, and collaborators who need to understand when
+phylogenetic or sequence distance is a useful proxy for antigenic change, and
+when it is not.
 
-This was my term project for Justin Bahl's molecular epidemiology course at the University of Georgia. A short draft was published as an Appendix to my dissertation. We are hoping to expand this work into a published manuscript since it provides additional detail about the driving forces behind some of my previous work on antigenic distance.
+## Intended uses
 
-In this repo I:
-- did some rough antigenic distance calculations (they have now been improved upon and expanded, contact me, Andreas Handel, or read my dissertation for details). This includes cartographic distances based on serological data from a study conducted by Ted M. Ross.
-- used the pairwise distance matrices between influenza A strains to build neighbor-joining trees.
-- built maximum likelihood trees for the sequences we included.
-- compared the phylogenetic ML trees to the neighbor joining trees.
+This repository is intended for:
 
-In general, cartography and evolutionary trees seem to tell a different story -- which is not straightforward. We expect antigenic innovations to evolve due to selective pressure in the population, but the genetic evolutionary tree cannot be reconstructed by cartography. Grantham distance, temporal distance, and $p$-Epitope distance build much more similar trees to the phylogenetic tree, implying that cartography is again capturing something unique (or maybe there are unanswered questions about cartography).
+- developing and auditing the influenza distance-metrics manuscript;
+- rerunning the project analysis through the `targets` pipeline;
+- tracing results from source inputs to derived tables, figures, and rendered
+  manuscript outputs;
+- reviewing documented analysis decisions and citation-support materials.
 
-Anyways, please contact me if you are interested in this work!
+It is not a general-purpose influenza analysis package. Functions in `R/` are
+project helpers for this manuscript workflow rather than a stable public API.
+
+## Scientific focus
+
+The analysis compares:
+
+- temporal distance between virus isolation years;
+- Grantham amino-acid distance;
+- p-Epitope distance;
+- antigenic cartography distance estimated from HAI response data;
+- maximum-likelihood phylogenetic distances and distance-based
+  neighbor-joining tree topologies.
+
+The central working claim is cautious: for the current H1N1 and H3N2 strain
+panel, sequence-derived and temporal distances can agree with phylogenetic
+distance more strongly than cartographic distance does. That mismatch matters
+because cartography is based on observed immune response data. Final scientific
+claims should be made only after the full analysis mode has been regenerated and
+the manuscript text has been reviewed against the current results.
+
+## Contributors
+
+Project contributors include Savannah L. Miller, Murphy H. John,
+Amanda L. Skarlupka, Ted M. Ross, Justin Bahl, Andreas Handel, and
+W. Zane Billings.
+
+## Repository structure
+
+- `_targets.R`: reproducible analysis pipeline from source inputs to derived
+  outputs, manuscript tables, figures, and rendered documents.
+- `R/`: reusable analysis functions for data cleaning, alignment, distance
+  calculation, tree fitting, plots, tables, and manuscript rendering.
+- `data/`: source inputs and legacy derived files. Treat
+  `data/full-sequences.xlsx` and `data/UGAFluVac-virus-names.csv` as immutable
+  raw/source inputs.
+- `results/`: generated analysis outputs, including derived RDS files,
+  manuscript-ready tables, and figures.
+- `products/`: Quarto manuscript and supplement sources, bibliography files,
+  citation style files, and rendered Word outputs.
+- `docs/`: analysis decision log, project planning notes, and bibliography
+  support materials.
+- `tests/`: lightweight non-package `testthat` suite for deterministic helper
+  behavior.
+- `archive/`: legacy scripts and historical materials retained for provenance.
+
+## Installation
+
+This is an R analysis project managed with `renv`. The lockfile currently
+records R 4.6.0 with Bioconductor 3.23 repositories.
+
+From the repository root, restore the recorded package environment:
+
+```r
+renv::restore()
+```
+
+The project uses a `targets` pipeline, Quarto manuscript files, and several
+R/Bioconductor packages recorded in `renv.lock`.
+
+## Usage
+
+Inspect the pipeline without running it:
+
+```r
+targets::tar_manifest()
+```
+
+Run the development pipeline:
+
+```r
+targets::tar_make()
+```
+
+By default, the pipeline uses `FLU_TARGETS_MODE=test`, which keeps stochastic
+and expensive steps small enough for routine development checks. Publication
+scale settings are selected by setting `FLU_TARGETS_MODE=full` before running
+the pipeline:
+
+```r
+Sys.setenv(FLU_TARGETS_MODE = "full")
+targets::tar_make()
+```
+
+Rendered manuscript outputs are generated through pipeline targets from the
+Quarto sources in `products/`.
+
+## Tests
+
+Run the lightweight helper-function test suite from the repository root:
+
+```sh
+Rscript tests/run-tests.R
+```
+
+The tests are intentionally smaller than a full pipeline rebuild. They guard
+input validation, distance-matrix helpers, deterministic transformations,
+manuscript table helpers, and other low-cost assumptions that can otherwise
+silently affect downstream analyses.
+
+## Development notes
+
+- Do not manually edit raw inputs, generated tables, figures, rendered
+  documents, or derived RDS files. Update the code or pipeline target that
+  creates them.
+- Keep reusable analysis logic in `R/` and pipeline definitions in `_targets.R`.
+- Record consequential research, analysis, and publication decisions in
+  `docs/analysis-decision-log.md`.
+- Treat test-mode numerical results as pipeline checks, not final manuscript
+  evidence.
+- Regenerate full-mode outputs before updating final interpretation, submission
+  materials, or public-release claims.
+
+## Citation
+
+No formal paper citation is available yet. If citing this work before
+publication, cite the repository title, contributors, date accessed, and commit
+hash, and confirm details with the project team. Once the manuscript is
+published, cite the published article instead.
+
+## License
+
+This repository is licensed under the GNU Affero General Public License v3.0.
+See [`LICENSE`](LICENSE) for the full license text.
+
+In brief, AGPL-3.0 permits use, copying, modification, and redistribution under
+copyleft terms, and includes source-sharing obligations for modified versions
+made available over a network. This summary is provided for orientation only;
+the license file controls.
+
+## Disclaimer
+
+The materials in this repository are provided for research workflow support for
+an in-progress influenza manuscript and are not legal, medical, regulatory,
+statistical, or research-ethics advice. They may be incomplete, inappropriate
+for a specific project, or unsuitable for a particular institution, journal,
+funder, dataset, or regulatory setting.
+
+Users are responsible for reviewing, adapting, validating, and maintaining any
+analysis code, workflow materials, manuscript text, prompts, scripts, and
+documentation before using them in real research projects. Use appropriate
+human review for scientific claims, statistical methods, privacy protections,
+authorship decisions, citations, compliance requirements, and public releases.
+
+## Maintenance and contact
+
+Maintainer: Zane Billings <wz.billings@gmail.com>
+
+This repository is intended to remain practical and lightweight. Additions
+should be clear, reusable, and grounded in actual academic or research workflow
+needs.
