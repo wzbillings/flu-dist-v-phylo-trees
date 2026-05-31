@@ -102,6 +102,7 @@ test_that("analysis settings expose fast test and full modes", {
 	expect_equal(test_settings$mode, "test")
 	expect_equal(full_settings$mode, "full")
 	expect_true(test_settings$sh_bootstrap < full_settings$sh_bootstrap)
+	expect_true(test_settings$ml_support_bootstrap < full_settings$ml_support_bootstrap)
 	expect_true(test_settings$mantel_permutations < full_settings$mantel_permutations)
 	expect_true(test_settings$mantel_bootstrap_reps < full_settings$mantel_bootstrap_reps)
 	expect_error(make_analysis_settings("other"), "FLU_TARGETS_MODE must be either 'test' or 'full'.")

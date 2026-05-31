@@ -104,7 +104,10 @@ because these fixed distance-tree topologies are not nested regular parametric
 models relative to the optimized ML topology. As secondary checks, we estimated
 Shimodaira-Hasegawa p-values [@shimodaira1999ShTest] and computed
 Robinson-Foulds distances [@robinson1981ComparisonPhylogeneticTrees] between
-each distance tree and the ML tree. Our analyses were implemented
+each distance tree and the ML tree. We also evaluated ML-tree robustness with
+nonparametric site-bootstrap resampling of the fitted ML tree, reporting
+internal-branch support and bootstrap topology-stability diagnostics in the
+supplement. Our analyses were implemented
 with R version 4.3.3 [@rcoreteam2024] using the packages
 `phangorn` [@schliep2011] and `msa` [@bodenhofer2015].
 
@@ -205,7 +208,10 @@ $p$-Epitope distance trees. For the H3N2 strains, the cartographic tree had the
 largest likelihood decrease, while the temporal and Grantham distance trees
 remained closer to the ML tree. The temporal distance tree was therefore much
 less compatible with the sequence alignment for H1N1 than for H3N2, consistent
-with the subtype-specific temporal patterns above.
+with the subtype-specific temporal patterns above. ML-tree branch support and
+bootstrap topology-stability summaries are reported in the supplement as
+robustness diagnostics; those values should be interpreted from full-mode
+pipeline outputs rather than reduced test-mode runs.
 
 ```{r}
 #| label: tbl-tree-comparison

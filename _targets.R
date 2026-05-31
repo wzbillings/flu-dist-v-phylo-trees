@@ -164,6 +164,22 @@ list(
 	),
 	tar_target(tree_analyses, list(h1 = h1_tree_analysis, h3 = h3_tree_analysis)),
 	tar_target(
+		h1_ml_tree_support,
+		calculate_ml_tree_support(
+			h1_tree_analysis,
+			analysis_settings,
+			seed_offset = 101L
+		)
+	),
+	tar_target(
+		h3_ml_tree_support,
+		calculate_ml_tree_support(
+			h3_tree_analysis,
+			analysis_settings,
+			seed_offset = 202L
+		)
+	),
+	tar_target(
 		distances_with_tree_by_subtype,
 		purrr::imap(
 			distances_by_subtype,
@@ -254,6 +270,16 @@ list(
 	tar_target(
 		h3_tree_metric_file,
 		write_rds_target(h3_tree_analysis$tree_distance_metrics, "results/derived/h3-tree-metrics.rds"),
+		format = "file"
+	),
+	tar_target(
+		h1_ml_tree_support_file,
+		write_rds_target(h1_ml_tree_support, "results/derived/h1-ml-tree-support.rds"),
+		format = "file"
+	),
+	tar_target(
+		h3_ml_tree_support_file,
+		write_rds_target(h3_ml_tree_support, "results/derived/h3-ml-tree-support.rds"),
 		format = "file"
 	),
 	tar_target(
@@ -412,6 +438,48 @@ list(
 		),
 		format = "file"
 	),
+	tar_target(
+		ml_tree_support_summary,
+		make_ml_tree_support_summary(h1_ml_tree_support, h3_ml_tree_support)
+	),
+	tar_target(
+		ml_branch_support_detail,
+		make_ml_branch_support_detail(h1_ml_tree_support, h3_ml_tree_support)
+	),
+	tar_target(
+		ml_tree_support_summary_file,
+		write_rds_target(
+			ml_tree_support_summary,
+			"results/derived/ml-tree-support-summary.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		ml_branch_support_detail_file,
+		write_rds_target(
+			ml_branch_support_detail,
+			"results/derived/ml-tree-branch-support-detail.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		ml_tree_support_table_file,
+		write_ml_tree_support_table(
+			h1_ml_tree_support,
+			h3_ml_tree_support,
+			"results/Tables/ml-tree-support-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		ml_branch_support_detail_table_file,
+		write_ml_branch_support_detail_table(
+			h1_ml_tree_support,
+			h3_ml_tree_support,
+			"results/Tables/ml-tree-branch-support-detail-table.rds"
+		),
+		format = "file"
+	),
 	
 	# Quarto manuscript render.
 	tar_target(manuscript_qmd, "products/manuscript.qmd", format = "file"),
@@ -446,6 +514,9 @@ list(
 			cophenetic_correlation_table_file,
 			model_selection_table_file,
 			tree_topology_distance_table_file,
+			ml_tree_support_summary_file,
+			ml_tree_support_table_file,
+			ml_branch_support_detail_table_file,
 			bibliography_file,
 			csl_file
 		),

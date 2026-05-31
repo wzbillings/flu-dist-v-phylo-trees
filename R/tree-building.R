@@ -235,6 +235,288 @@ calculate_tree_distance_metrics <- function(ml_tree, scored_neighbor_trees) {
 	purrr::map(methods, \(f) f(multi) |> as.matrix())
 }
 
+as_phylo_tree <- function(tree_or_fit) {
+	if (inherits(tree_or_fit, "phylo")) {
+		return(tree_or_fit)
+	}
+	if (is.list(tree_or_fit) && inherits(tree_or_fit$tree, "phylo")) {
+		return(tree_or_fit$tree)
+	}
+	stop("Expected a phylo tree or fitted pml-style object with a phylo tree.", call. = FALSE)
+}
+
+validate_bootstrap_trees <- function(bootstrap_trees, reference_tree) {
+	if (!inherits(bootstrap_trees, "multiPhylo") || length(bootstrap_trees) == 0) {
+		stop("Bootstrap trees must be a non-empty multiPhylo object.", call. = FALSE)
+	}
+	reference_labels <- reference_tree$tip.label
+	mismatched <- purrr::keep(
+		seq_along(bootstrap_trees),
+		\(i) !setequal(bootstrap_trees[[i]]$tip.label, reference_labels)
+	)
+	if (length(mismatched) > 0) {
+		stop(
+			"Bootstrap tree tip labels must match the reference ML tree. ",
+			"Mismatched replicate(s): ",
+			paste(mismatched, collapse = ", "),
+			call. = FALSE
+		)
+	}
+	invisible(bootstrap_trees)
+}
+
+support_category <- function(support_percent) {
+	dplyr::case_when(
+		is.na(support_percent) ~ "missing",
+		support_percent >= 95 ~ ">=95%",
+		support_percent >= 90 ~ "90-94%",
+		support_percent >= 70 ~ "70-89%",
+		support_percent > 0 ~ "<70%",
+		TRUE ~ "0%"
+	)
+}
+
+calculate_branch_support_detail <- function(
+		reference_tree,
+		bootstrap_trees,
+		subtype,
+		bootstrap_replicates = length(bootstrap_trees)
+	) {
+	reference_tree <- as_phylo_tree(reference_tree)
+	validate_bootstrap_trees(bootstrap_trees, reference_tree)
+	bootstrap_replicates <- as.integer(bootstrap_replicates)
+	if (length(bootstrap_replicates) != 1 || is.na(bootstrap_replicates) || bootstrap_replicates < 1) {
+		stop("Bootstrap replicate count must be a positive integer.", call. = FALSE)
+	}
+	
+	support_counts <- ape::prop.clades(reference_tree, bootstrap_trees, rooted = FALSE)
+	if (length(support_counts) != ape::Nnode(reference_tree)) {
+		stop("Branch-support counts did not match the number of internal ML-tree nodes.", call. = FALSE)
+	}
+	support_percent <- as.numeric(support_counts) / bootstrap_replicates * 100
+	
+	tibble::tibble(
+		subtype = subtype,
+		node = length(reference_tree$tip.label) + seq_along(support_percent),
+		bootstrap_replicates = bootstrap_replicates,
+		support_percent = support_percent,
+		support_category = support_category(support_percent)
+	)
+}
+
+summarise_branch_support_detail <- function(branch_support_detail) {
+	check_required_columns(
+		branch_support_detail,
+		c("subtype", "bootstrap_replicates", "support_percent"),
+		"branch-support detail"
+	)
+	branch_support_detail |>
+		dplyr::group_by(.data$subtype, .data$bootstrap_replicates) |>
+		dplyr::summarise(
+			internal_branches = dplyr::n(),
+			mean_support_percent = mean(.data$support_percent, na.rm = TRUE),
+			median_support_percent = stats::median(.data$support_percent, na.rm = TRUE),
+			min_support_percent = min(.data$support_percent, na.rm = TRUE),
+			branches_ge_70_percent = sum(.data$support_percent >= 70, na.rm = TRUE),
+			branches_ge_90_percent = sum(.data$support_percent >= 90, na.rm = TRUE),
+			branches_ge_95_percent = sum(.data$support_percent >= 95, na.rm = TRUE),
+			.groups = "drop"
+		)
+}
+
+add_branch_support_labels <- function(reference_tree, branch_support_detail) {
+	reference_tree <- as_phylo_tree(reference_tree)
+	ordered_support <- branch_support_detail |>
+		dplyr::arrange(.data$node) |>
+		dplyr::pull("support_percent")
+	if (length(ordered_support) != ape::Nnode(reference_tree)) {
+		stop("Branch-support detail must contain one row per internal ML-tree node.", call. = FALSE)
+	}
+	reference_tree$node.label <- sprintf("%.0f", ordered_support)
+	reference_tree
+}
+
+tree_distance_to_reference <- function(reference_tree, tree, distance_function, ...) {
+	tryCatch(
+		as.numeric(distance_function(reference_tree, tree, ...)),
+		error = function(e) NA_real_
+	)
+}
+
+max_or_na <- function(x) {
+	if (all(is.na(x))) {
+		return(NA_real_)
+	}
+	max(x, na.rm = TRUE)
+}
+
+calculate_bootstrap_topology_stability <- function(reference_tree, bootstrap_trees, subtype) {
+	reference_tree <- as_phylo_tree(reference_tree)
+	validate_bootstrap_trees(bootstrap_trees, reference_tree)
+	
+	purrr::map_dfr(
+		seq_along(bootstrap_trees),
+		\(replicate_id) {
+			tree <- bootstrap_trees[[replicate_id]]
+			rf_distance <- tree_distance_to_reference(
+				reference_tree,
+				tree,
+				phangorn::RF.dist,
+				normalize = FALSE,
+				rooted = FALSE
+			)
+			normalized_rf_distance <- tree_distance_to_reference(
+				reference_tree,
+				tree,
+				phangorn::RF.dist,
+				normalize = TRUE,
+				rooted = FALSE
+			)
+			weighted_rf_distance <- tree_distance_to_reference(
+				reference_tree,
+				tree,
+				phangorn::wRF.dist,
+				normalize = FALSE,
+				rooted = FALSE
+			)
+			branch_score_distance <- tree_distance_to_reference(
+				reference_tree,
+				tree,
+				phangorn::KF.dist,
+				rooted = FALSE
+			)
+			path_distance <- tree_distance_to_reference(
+				reference_tree,
+				tree,
+				phangorn::path.dist,
+				use.weight = FALSE
+			)
+			
+			tibble::tibble(
+				subtype = subtype,
+				bootstrap_replicate = as.integer(replicate_id),
+				rf_distance = rf_distance,
+				normalized_rf_distance = normalized_rf_distance,
+				weighted_rf_distance = weighted_rf_distance,
+				branch_score_distance = branch_score_distance,
+				path_distance = path_distance,
+				distance_status = dplyr::if_else(
+					any(is.na(c(
+						rf_distance,
+						normalized_rf_distance,
+						weighted_rf_distance,
+						branch_score_distance,
+						path_distance
+					))),
+					"distance_failed",
+					"ok"
+				)
+			)
+		}
+	)
+}
+
+summarise_bootstrap_topology_stability <- function(topology_stability) {
+	check_required_columns(
+		topology_stability,
+		c(
+			"subtype",
+			"bootstrap_replicate",
+			"rf_distance",
+			"normalized_rf_distance",
+			"weighted_rf_distance",
+			"branch_score_distance",
+			"path_distance",
+			"distance_status"
+		),
+		"bootstrap topology-stability data"
+	)
+	topology_stability |>
+		dplyr::group_by(.data$subtype) |>
+		dplyr::summarise(
+			bootstrap_replicates = dplyr::n(),
+			usable_topology_replicates = sum(.data$distance_status == "ok", na.rm = TRUE),
+			distance_failures = sum(.data$distance_status != "ok", na.rm = TRUE),
+			identical_topology_fraction = mean(.data$rf_distance == 0, na.rm = TRUE),
+			median_normalized_rf_distance = stats::median(.data$normalized_rf_distance, na.rm = TRUE),
+			mean_normalized_rf_distance = mean(.data$normalized_rf_distance, na.rm = TRUE),
+			max_normalized_rf_distance = max_or_na(.data$normalized_rf_distance),
+			median_weighted_rf_distance = stats::median(.data$weighted_rf_distance, na.rm = TRUE),
+			median_branch_score_distance = stats::median(.data$branch_score_distance, na.rm = TRUE),
+			median_path_distance = stats::median(.data$path_distance, na.rm = TRUE),
+			.groups = "drop"
+		)
+}
+
+ml_support_replicates <- function(settings = make_analysis_settings()) {
+	reps <- as.integer(settings$ml_support_bootstrap)
+	if (length(reps) != 1 || is.na(reps) || reps < 1L) {
+		stop("ML support bootstrap replicates must be a positive integer.", call. = FALSE)
+	}
+	reps
+}
+
+run_ml_support_bootstrap <- function(ml_tree, settings = make_analysis_settings(), seed_offset = 0L) {
+	if (!inherits(ml_tree, "pml")) {
+		stop("ML support bootstrap requires a fitted pml object.", call. = FALSE)
+	}
+	with_seed(settings$seed + 30000L + seed_offset, {
+		if (isTRUE(settings$ml_support_opt_nni)) {
+			return(phangorn::bootstrap.pml(
+				ml_tree,
+				bs = ml_support_replicates(settings),
+				trees = TRUE,
+				optNni = TRUE,
+				control = phangorn::pml.control(trace = 0)
+			))
+		}
+		phangorn::bootstrap.pml(
+			ml_tree,
+			bs = ml_support_replicates(settings),
+			trees = TRUE,
+			optNni = FALSE,
+			control = phangorn::pml.control(trace = 0)
+		)
+	})
+}
+
+calculate_ml_tree_support <- function(
+		tree_analysis,
+		settings = make_analysis_settings(),
+		seed_offset = 0L,
+		bootstrap_trees = NULL
+	) {
+	subtype <- tree_analysis$subtype
+	reference_tree <- as_phylo_tree(tree_analysis$ml_tree)
+	if (is.null(bootstrap_trees)) {
+		bootstrap_trees <- run_ml_support_bootstrap(tree_analysis$ml_tree, settings, seed_offset)
+	}
+	validate_bootstrap_trees(bootstrap_trees, reference_tree)
+	bootstrap_replicates <- length(bootstrap_trees)
+	branch_support_detail <- calculate_branch_support_detail(
+		reference_tree,
+		bootstrap_trees,
+		subtype = subtype,
+		bootstrap_replicates = bootstrap_replicates
+	)
+	topology_stability <- calculate_bootstrap_topology_stability(
+		reference_tree,
+		bootstrap_trees,
+		subtype = subtype
+	)
+	
+	list(
+		subtype = subtype,
+		bootstrap_replicates = bootstrap_replicates,
+		bootstrap_trees = bootstrap_trees,
+		supported_tree = add_branch_support_labels(reference_tree, branch_support_detail),
+		branch_support_detail = branch_support_detail,
+		branch_support_summary = summarise_branch_support_detail(branch_support_detail),
+		topology_stability = topology_stability,
+		topology_stability_summary = summarise_bootstrap_topology_stability(topology_stability)
+	)
+}
+
 calculate_tree_analysis <- function(
 		alignment_result,
 		distances,

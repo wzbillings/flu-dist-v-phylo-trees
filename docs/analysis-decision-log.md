@@ -4,6 +4,37 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-05-31 - ML Tree Branch Support and Bootstrap Topology Stability
+
+**Decision:** Add ML-tree robustness diagnostics using nonparametric
+site-bootstrap resampling of each fitted ML tree. Use 10 bootstrap replicates in
+test mode and 1,000 replicates in full mode. Report branch-support and
+bootstrap topology-stability summaries in the supplement only for now; do not
+add support labels to the main ML-tree figure unless a later manuscript decision
+requires it. Include companion topology-stability metrics such as RF,
+normalized RF, weighted RF, branch-score, and path distances from each
+bootstrap replicate tree to the optimized ML tree.
+
+**Rationale:** Branch support directly addresses reviewer concerns that the ML
+tree topology needs robustness evidence. Supplement-first reporting avoids
+overloading the main figure while still making support and stability evidence
+auditable. Test-mode settings keep development checks feasible, while full-mode
+settings are intended for publication-scale interpretation.
+
+**Evidence / citation:** Human approval in chat on 2026-05-31; implementation
+in `R/tree-building.R`, `R/plots-and-tables.R`, `_targets.R`,
+`products/manuscript.qmd`, and `products/supplement.qmd`.
+
+**Alternatives considered:** Put bootstrap support labels directly on the main
+ML-tree figure, report branch support only without topology-stability companion
+metrics, or use topology-stability summaries only if branch-support plotting
+proved fragile.
+
+**Impact:** Test-mode outputs should be treated as pipeline checks only.
+Publication claims about ML-tree robustness require regenerating the support
+targets in `FLU_TARGETS_MODE=full` and reviewing the resulting supplemental
+tables.
+
 ## 2026-05-31 - Tree Comparison and ML Model Selection
 
 **Decision:** Rebuild tree-comparison reporting around the decrease in log
