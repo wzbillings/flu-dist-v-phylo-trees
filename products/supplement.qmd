@@ -51,6 +51,30 @@ correlation table in the main manuscript is generated from
 `results/derived/cophenetic-mantel-summary.rds`, and rendered as
 `results/Tables/distance-mantel-table.rds`.
 
+# Tree Model Selection
+
+For ML tree construction, the pipeline compares FLU-family amino-acid
+substitution models [@dang2010] with and without invariant sites and discrete
+gamma rate variation. In full mode, gamma category counts from 4 to 32 are
+evaluated in increments of 4. Within each subtype, the lowest-AICc model is
+identified [@burnham2002model]. A common model is preferred for both subtypes
+when its log-likelihood loss is no more than 10% relative to the
+subtype-specific AICc-supported model. If no common model satisfies this
+criterion, the pipeline uses subtype-specific models and the manuscript should
+explicitly discuss why subtype-specific model choices were necessary.
+
+```{r}
+#| label: tbl-tree-model-selection
+#| tbl-cap: |
+#|   FLU-family model comparison and selected model rule for ML tree fitting.
+#|   Test-mode results use reduced gamma-category settings and should be
+#|   regenerated in full mode before final manuscript interpretation.
+
+here::here("results", "Tables", "tree-model-selection-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 # Distance-Matrix Comparison Details
 
 The primary manuscript table reports Mantel correlations between ML-tree
@@ -188,6 +212,27 @@ inference.
 #|   strain-level bootstrap intervals and should be interpreted descriptively.
 
 here::here("results", "Tables", "descriptive-pearson-distance-correlation-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+# Supplemental Tree Topology Checks
+
+The main manuscript reports delta log likelihood as the primary tree-comparison
+metric, with SH p-values [@shimodaira1999ShTest] and RF distance
+[@robinson1981ComparisonPhylogeneticTrees] as secondary checks. Additional
+topology-distance summaries are reported here as sensitivity diagnostics rather
+than primary evidence. These metrics are useful for checking whether the
+likelihood ranking is accompanied by similar topology-distance patterns, but
+they do not replace the likelihood comparison.
+
+```{r}
+#| label: tbl-tree-topology-distances
+#| tbl-cap: |
+#|   Supplemental topology-distance metrics between each distance-based
+#|   neighbor-joining tree and the optimized ML tree.
+
+here::here("results", "Tables", "tree-topology-distance-table.rds") |>
 	readr::read_rds() |>
 	fit_flextable_to_page()
 ```

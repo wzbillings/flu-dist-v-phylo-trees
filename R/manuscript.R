@@ -47,7 +47,7 @@ render_quarto_manuscript <- function(
 		cophenetic_correlation_table_file,
 		subtype_contrast_table_file,
 		subtype_contrast_plot_file,
-		stat_table_file,
+		tree_comparison_table_file,
 		bibliography_file,
 		csl_file,
 		output_file = "products/manuscript.docx"
@@ -58,7 +58,7 @@ render_quarto_manuscript <- function(
 	validate_file_exists(cophenetic_correlation_table_file, "distance correlation table")
 	validate_file_exists(subtype_contrast_table_file, "subtype contrast table")
 	validate_file_exists(subtype_contrast_plot_file, "subtype contrast figure")
-	validate_file_exists(stat_table_file, "statistical table")
+	validate_file_exists(tree_comparison_table_file, "tree comparison table")
 	validate_file_exists(bibliography_file, "bibliography")
 	validate_file_exists(csl_file, "CSL file")
 
@@ -74,6 +74,8 @@ render_quarto_supplement <- function(
 		subtype_contrast_sensitivity_file,
 		subtype_contrast_sensitivity_table_file,
 		pearson_correlation_table_file,
+		model_selection_table_file,
+		tree_topology_distance_table_file,
 		bibliography_file,
 		csl_file,
 		output_file = "products/supplement.docx"
@@ -86,6 +88,8 @@ render_quarto_supplement <- function(
 	validate_file_exists(subtype_contrast_sensitivity_file, "subtype contrast sensitivity summary")
 	validate_file_exists(subtype_contrast_sensitivity_table_file, "subtype contrast sensitivity table")
 	validate_file_exists(pearson_correlation_table_file, "descriptive Pearson distance correlation table")
+	validate_file_exists(model_selection_table_file, "tree model-selection table")
+	validate_file_exists(tree_topology_distance_table_file, "tree topology-distance table")
 	validate_file_exists(bibliography_file, "bibliography")
 	validate_file_exists(csl_file, "CSL file")
 

@@ -73,7 +73,14 @@ amino acids were excluded from the pair-specific denominator rather than treated
 as zero-distance substitutions. We had 18
 H1N1 strains and 21 H3N2 strains in total. We then used
 both alignments to construct maximum likelihood (ML) unrooted phylogenetic trees
-using the FLU amino acid substitution model. We extracted the
+using the FLU amino acid substitution model [@dang2010]. For each subtype, we
+compared FLU-family models with and without invariant sites and discrete gamma
+rate variation, evaluating gamma category counts from 4 to 32 in increments of
+4 for the full analysis. Models were compared with AICc
+[@burnham2002model; @schliep2011]. We selected the AICc-supported model within
+each subtype, but preferred a common model for both subtypes when the common
+model's log-likelihood loss was no more than 10% relative to the
+subtype-specific AICc-supported model. We extracted the
 cophenetic distances between taxa from the ML trees, and compared these
 distances to our other distance metrics (temporal, Grantham,
 $p$-Epitope, and cartography) using Mantel correlations with matrix
@@ -89,11 +96,15 @@ off-diagonal pair representation are reported in the supplement for
 interpretability.
 
 For each of the four distance metrics, we also built distance-based trees using
-neighbor joining. To compare the methods, we calculated the likelihood of each
-of the distance-based trees, then estimated the
-Shimodaira-Hasegawa test statistic to
-compare each of the distance trees to the ML tree. Finally, we computed the
-Robinson-Foulds distance between each set of trees. Our analyses were implemented
+neighbor joining [@saitou1987NeighborJoining]. To compare the methods, we
+calculated the likelihood of each distance-based tree under the selected ML
+model and treated the decrease in log likelihood from the ML tree as the primary
+tree-comparison statistic. We did not use a standard likelihood-ratio test
+because these fixed distance-tree topologies are not nested regular parametric
+models relative to the optimized ML topology. As secondary checks, we estimated
+Shimodaira-Hasegawa p-values [@shimodaira1999ShTest] and computed
+Robinson-Foulds distances [@robinson1981ComparisonPhylogeneticTrees] between
+each distance tree and the ML tree. Our analyses were implemented
 with R version 4.3.3 [@rcoreteam2024] using the packages
 `phangorn` [@schliep2011] and `msa` [@bodenhofer2015].
 
@@ -186,32 +197,28 @@ knitr::include_graphics(here::here("results", "Figures", "ml-trees.png"))
 ```
 
 For brevity, we do not show all 8 of the distance-based neighbor joining
-phylogenies. However, we conducted SH tests and computed
-the RF distance between each of the distance-based trees and the
-ML tree for the same subtype (@tbl-stats). For the H1N1 strains, the temporal
-distance and cartographic distance trees were different from
-the maximum likelihood tree based on the SH test, and these trees also had
-higher RF distance from the ML tree than the Grantham and $p$-Epitope distance
-trees. For the H3N2 strains, the temporal and Grantham distance trees were
-similar to the ML tree, the $p$-Epitope tree had a larger likelihood decrease,
-and the cartographic tree was very different from the ML tree. All of the
-changes in log likelihood for the H3N2 trees were smaller in magnitude than for
-H1N1. Notably, the temporal distance tree had a much lower likelihood than the
-ML model for H1N1.
+phylogenies. Instead, we summarize their likelihood support relative to the ML
+tree, with SH p-values and RF distances as secondary checks
+(@tbl-tree-comparison). For the H1N1 strains, the temporal and cartographic
+distance trees had larger decreases in log likelihood than the Grantham and
+$p$-Epitope distance trees. For the H3N2 strains, the cartographic tree had the
+largest likelihood decrease, while the temporal and Grantham distance trees
+remained closer to the ML tree. The temporal distance tree was therefore much
+less compatible with the sequence alignment for H1N1 than for H3N2, consistent
+with the subtype-specific temporal patterns above.
 
 ```{r}
-#| label: tbl-stats
+#| label: tbl-tree-comparison
 #| tbl-cap: |
-#|    Log likelihood of all constructed trees, along with the decrease in log
-#|    likelihood (Δll) from the ML model, the p-value of the Shimodaira-Hasegawa
-#|    test (SH p-value; evaluated on one million bootstrap resamples), and the
-#|    Robinson-Foulds distance from the ML tree (RF distance).
+#|    Distance-tree likelihood comparison against the optimized ML tree. Delta
+#|    log likelihood is the decrease in log likelihood from the ML tree. SH
+#|    p-values and RF distances are secondary topology checks.
 
-here::here("results", "Tables", "stat-table.rds") |>
+here::here("results", "Tables", "tree-comparison-table.rds") |>
 	readr::read_rds() |>
 	flextable::width(
-		j = c(1, 2, 3, 4, 5, 6),
-		width = c(0.75, 1.75, 1, 1, 1, 1),
+		j = c(1, 2, 3, 4, 5, 6, 7),
+		width = c(0.75, 1.5, 1, 1, 1, 1, 1),
 		unit = "in"
 	)
 ```

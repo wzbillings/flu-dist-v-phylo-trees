@@ -21,7 +21,10 @@ The implemented tests cover fast deterministic behavior:
 - lightweight manuscript/table helper functions that do not render plots, tables, or documents;
 - strain-level bootstrap helper behavior for distance-correlation intervals;
 - Mantel matrix-comparison summaries that exclude diagonal and duplicate
-  distance-matrix entries.
+  distance-matrix entries;
+- tree-comparison table construction from toy tree-analysis objects, including
+  delta log likelihood, SH p-values, RF distance, supplemental topology
+  distances, and common-versus-subtype model-selection logic.
 
 The tests intentionally do not cover:
 
@@ -49,7 +52,7 @@ Assumptions:
 - `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, vector normalization, shared-strain alignment, unique off-diagonal pair extraction, and small deterministic Mantel permutation result structures.
 - `tests/testthat/test-grantham-distance.R`: tests canonical Grantham matrix values, per-comparable-site averaging, explicit gap/ambiguous residue exclusion, and named symmetric matrix output.
 - `tests/testthat/test-p-epitope-calculator.R`: tests p-epitope site lookup, invalid subtype handling, and basic p-epitope distance-matrix properties.
-- `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, weighted correlations, Fisher/Wald confidence interval guardrails, strain-level bootstrap weighting helpers, and manuscript-ready Mantel summary structure.
+- `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, weighted correlations, Fisher/Wald confidence interval guardrails, strain-level bootstrap weighting helpers, manuscript-ready Mantel summary structure, tree-comparison table helpers, supplemental topology-distance table helpers, and model-selection summaries.
 - `tests/testthat/test-subtype-contrast.R`: tests toy-matrix subtype contrast estimates, Bayesian-bootstrap contrast interval structure, Fisher-z and permutation sensitivity summaries, and manuscript-ready subtype contrast table/plot constructors.
 
 ## How to run the tests
