@@ -31,6 +31,30 @@ jobs:
           r-version: renv
           use-public-rspm: true
 
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential \
+            libcurl4-openssl-dev \
+            libcairo2-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libfribidi-dev \
+            libglpk-dev \
+            libharfbuzz-dev \
+            libicu-dev \
+            libjpeg-dev \
+            libmagick++-dev \
+            libpng-dev \
+            libssl-dev \
+            libtiff-dev \
+            libuv1-dev \
+            libwebp-dev \
+            libxml2-dev \
+            pkg-config \
+            zlib1g-dev
+
       - name: Restore renv package library
         uses: r-lib/actions/setup-renv@v2
 
