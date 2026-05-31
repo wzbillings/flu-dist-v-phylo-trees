@@ -3,48 +3,161 @@
 # Zane Billings
 ###
 
-run_model_test <- function(protein_phydat, settings = make_analysis_settings()) {
-	phangorn::modelTest(
-		protein_phydat,
-		model = "FLU",
-		G = TRUE,
-		I = TRUE,
-		k = settings$model_test_gamma_categories
-	) |>
-		as.data.frame()
+model_test_gamma_categories <- function(settings = make_analysis_settings()) {
+	categories <- as.integer(settings$model_test_gamma_categories)
+	categories <- unique(categories)
+	if (length(categories) == 0 || any(is.na(categories)) || any(categories < 2L)) {
+		stop("Model-test gamma categories must be integer values of at least 2.", call. = FALSE)
+	}
+	categories
 }
 
-fit_ml_tree <- function(protein_phydat, settings = make_analysis_settings()) {
+run_model_test <- function(protein_phydat, settings = make_analysis_settings()) {
+	model_tests <- purrr::map_dfr(
+		model_test_gamma_categories(settings),
+		\(gamma_categories) {
+			phangorn::modelTest(
+				protein_phydat,
+				model = "FLU",
+				G = TRUE,
+				I = TRUE,
+				k = gamma_categories,
+				control = phangorn::pml.control(trace = 0)
+			) |>
+				as.data.frame() |>
+				dplyr::mutate(model_test_gamma_categories = gamma_categories, .before = 1)
+		}
+	)
+
+	model_tests |>
+		dplyr::arrange(.data$AICc, dplyr::desc(.data$logLik)) |>
+		dplyr::group_by(.data$Model) |>
+		dplyr::slice(1) |>
+		dplyr::ungroup() |>
+		dplyr::arrange(.data$AICc)
+}
+
+calculate_model_test <- function(alignment_result, settings = make_analysis_settings()) {
+	alignment_result |>
+		as_protein_phydat() |>
+		run_model_test(settings)
+}
+
+best_model_by_aicc <- function(model_test) {
+	check_required_columns(model_test, c("Model", "AICc"), "model-test table")
+	model_test$Model[[which.min(model_test$AICc)]]
+}
+
+model_log_likelihood_loss_fraction <- function(model_test, candidate_model) {
+	check_required_columns(model_test, c("Model", "logLik", "AICc"), "model-test table")
+	if (!candidate_model %in% model_test$Model) {
+		return(NA_real_)
+	}
+	best_model <- best_model_by_aicc(model_test)
+	best_log_likelihood <- model_test$logLik[match(best_model, model_test$Model)]
+	candidate_log_likelihood <- model_test$logLik[match(candidate_model, model_test$Model)]
+	loss <- max(0, best_log_likelihood - candidate_log_likelihood)
+	loss / max(abs(best_log_likelihood), .Machine$double.eps)
+}
+
+summarise_common_model_candidates <- function(model_tests_by_subtype) {
+	if (is.null(names(model_tests_by_subtype)) || any(names(model_tests_by_subtype) == "")) {
+		stop("Model-test list must be named by subtype.", call. = FALSE)
+	}
+	common_models <- Reduce(intersect, purrr::map(model_tests_by_subtype, "Model"))
+	if (length(common_models) == 0) {
+		stop("No common candidate models are present in every subtype model-test table.", call. = FALSE)
+	}
+
+	purrr::map_dfr(
+		common_models,
+		\(candidate_model) {
+			losses <- purrr::map_dbl(
+				model_tests_by_subtype,
+				model_log_likelihood_loss_fraction,
+				candidate_model = candidate_model
+			)
+			combined_aicc <- purrr::map_dbl(
+				model_tests_by_subtype,
+				\(model_test) model_test$AICc[match(candidate_model, model_test$Model)]
+			) |>
+				sum()
+			tibble::tibble(
+				Model = candidate_model,
+				combined_AICc = combined_aicc,
+				max_log_likelihood_loss_fraction = max(losses, na.rm = TRUE)
+			)
+		}
+	) |>
+		dplyr::arrange(.data$combined_AICc)
+}
+
+choose_tree_model <- function(
+		model_tests_by_subtype,
+		performance_tolerance = make_analysis_settings()$model_performance_tolerance
+	) {
+	candidate_summary <- summarise_common_model_candidates(model_tests_by_subtype)
+	acceptable <- candidate_summary |>
+		dplyr::filter(.data$max_log_likelihood_loss_fraction <= performance_tolerance) |>
+		dplyr::arrange(.data$combined_AICc)
+
+	if (nrow(acceptable) > 0) {
+		selected_model <- acceptable$Model[[1]]
+		selected_models <- stats::setNames(
+			rep(selected_model, length(model_tests_by_subtype)),
+			names(model_tests_by_subtype)
+		)
+		strategy <- "common"
+	} else {
+		selected_model <- NA_character_
+		selected_models <- purrr::map_chr(model_tests_by_subtype, best_model_by_aicc)
+		strategy <- "subtype-specific"
+	}
+
+	list(
+		strategy = strategy,
+		selected_model = selected_model,
+		selected_models = selected_models,
+		performance_tolerance = performance_tolerance,
+		candidate_summary = candidate_summary
+	)
+}
+
+default_tree_model <- function(settings = make_analysis_settings()) {
+	if (identical(settings$mode, "full")) {
+		settings$tree_model_full
+	} else {
+		settings$tree_model_fast
+	}
+}
+
+fit_ml_tree <- function(
+		protein_phydat,
+		settings = make_analysis_settings(),
+		model = NULL
+	) {
+	if (is.null(model)) {
+		model <- default_tree_model(settings)
+	}
 	with_seed(settings$seed, {
 		if (identical(settings$tree_fit_strategy, "pml_bb")) {
 			return(phangorn::pml_bb(
 				protein_phydat,
-				model = settings$tree_model_full,
+				model = model,
 				rearrangement = "stochastic",
 				method = "unrooted",
-				site.rate = "gamma_quadrature"
+				site.rate = "gamma_quadrature",
+				control = phangorn::pml.control(trace = 0)
 			))
 		}
 		
-		start_tree <- protein_phydat |>
-			phangorn::dist.ml(model = settings$tree_model_fast) |>
-			phangorn::NJ()
-		
-		start_fit <- phangorn::pml(
-			start_tree,
+		phangorn::pml_bb(
 			protein_phydat,
-			model = settings$tree_model_fast
-		)
-		
-		phangorn::optim.pml(
-			start_fit,
-			model = settings$tree_model_fast,
+			model = model,
 			rearrangement = "NNI",
-			optNni = TRUE,
-			optBf = FALSE,
-			optQ = FALSE,
-			optGamma = FALSE,
-			optInv = FALSE
+			method = "unrooted",
+			site.rate = "gamma_quadrature",
+			control = phangorn::pml.control(trace = 0)
 		)
 	})
 }
@@ -86,7 +199,7 @@ score_neighbor_joining_trees <- function(
 			model = ml_tree$model,
 			ASC = FALSE
 		) |>
-			phangorn::optim.pml()
+			phangorn::optim.pml(control = phangorn::pml.control(trace = 0))
 	)
 }
 
@@ -125,11 +238,23 @@ calculate_tree_distance_metrics <- function(ml_tree, scored_neighbor_trees) {
 calculate_tree_analysis <- function(
 		alignment_result,
 		distances,
-		settings = make_analysis_settings()
+		settings = make_analysis_settings(),
+		model_test = NULL,
+		model_choice = NULL,
+		selected_model = NULL
 	) {
 	protein_phydat <- as_protein_phydat(alignment_result)
-	model_test <- run_model_test(protein_phydat, settings)
-	ml_tree <- fit_ml_tree(protein_phydat, settings)
+	if (is.null(model_test)) {
+		model_test <- run_model_test(protein_phydat, settings)
+	}
+	if (is.null(selected_model)) {
+		selected_model <- if (!is.null(model_choice)) {
+			model_choice$selected_models[[alignment_result$subtype]]
+		} else {
+			best_model_by_aicc(model_test)
+		}
+	}
+	ml_tree <- fit_ml_tree(protein_phydat, settings, model = selected_model)
 	neighbor_joining_trees <- build_neighbor_joining_trees(distances, settings)
 	scored_neighbor_trees <- score_neighbor_joining_trees(
 		neighbor_joining_trees,
@@ -141,6 +266,8 @@ calculate_tree_analysis <- function(
 	list(
 		subtype = alignment_result$subtype,
 		model_test = model_test,
+		selected_model = selected_model,
+		model_choice = model_choice,
 		ml_tree = ml_tree,
 		neighbor_joining_trees = neighbor_joining_trees,
 		scored_neighbor_trees = scored_neighbor_trees,

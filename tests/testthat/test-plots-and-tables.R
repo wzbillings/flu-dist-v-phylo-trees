@@ -161,3 +161,178 @@ test_that("cophenetic Mantel summary reports overall and subtype-specific matrix
 	expect_false("Pearson r" %in% names(summary))
 	expect_s3_class(make_cophenetic_mantel_table(summary), "flextable")
 })
+
+make_toy_tree_analysis <- function(subtype, sh_diffs, rf_distances, model_test = NULL) {
+	method_names <- c("ml", names(distance_method_labels()))
+	sh_test <- cbind(
+		"Trees" = seq_along(method_names),
+		"ln L" = -1000 - sh_diffs,
+		"Diff ln L" = sh_diffs,
+		"p-value" = c(0.95, 0.12, 0.34, 0.001, 0.56)
+	)
+	rf_matrix <- matrix(
+		0,
+		nrow = length(method_names),
+		ncol = length(method_names),
+		dimnames = list(method_names, method_names)
+	)
+	rf_matrix[, "ml"] <- rf_distances
+	rf_matrix["ml", ] <- rf_distances
+
+	list(
+		subtype = subtype,
+		model_test = model_test,
+		selected_model = NULL,
+		sh_test = sh_test,
+		tree_distance_metrics = list(
+			SPR = rf_matrix + 1,
+			RF = rf_matrix,
+			wRF = rf_matrix / 10,
+			KF = rf_matrix / 100,
+			path = rf_matrix * 2
+		)
+	)
+}
+
+test_that("tree comparison summary centers delta log likelihood and keeps SH/RF secondary", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+	skip_if_not_installed("flextable")
+
+	h1 <- make_toy_tree_analysis(
+		"h1",
+		sh_diffs = c(0, 40, 2, 8, 55),
+		rf_distances = c(0, 12, 2, 4, 14)
+	)
+	h3 <- make_toy_tree_analysis(
+		"h3",
+		sh_diffs = c(0, 5, 4, 12, 60),
+		rf_distances = c(0, 6, 8, 10, 16)
+	)
+
+	summary <- make_tree_comparison_summary(h1, h3)
+
+	expect_equal(nrow(summary), 8)
+	expect_equal(
+		names(summary),
+		c(
+			"Subtype",
+			"Distance tree",
+			"Delta log likelihood",
+			"Tree log likelihood",
+			"ML log likelihood",
+			"SH p-value",
+			"RF distance"
+		)
+	)
+	expect_false("Maximum likelihood baseline" %in% summary$`Distance tree`)
+	expect_equal(summary$`Distance tree`[1:4], unname(distance_method_labels()))
+	expect_equal(summary$`Delta log likelihood`[summary$Subtype == "H1N1"], c(40, 2, 8, 55))
+	expect_equal(summary$`RF distance`[summary$Subtype == "H3N2"], c(6, 8, 10, 16))
+	expect_s3_class(make_tree_comparison_table(summary), "flextable")
+})
+
+test_that("topology distance summary reports supplemental metrics against the ML tree", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+	skip_if_not_installed("flextable")
+
+	h1 <- make_toy_tree_analysis(
+		"h1",
+		sh_diffs = c(0, 40, 2, 8, 55),
+		rf_distances = c(0, 12, 2, 4, 14)
+	)
+	h3 <- make_toy_tree_analysis(
+		"h3",
+		sh_diffs = c(0, 5, 4, 12, 60),
+		rf_distances = c(0, 6, 8, 10, 16)
+	)
+
+	summary <- make_topology_distance_summary(h1, h3)
+
+	expect_equal(nrow(summary), 8)
+	expect_equal(
+		names(summary),
+		c(
+			"Subtype",
+			"Distance tree",
+			"SPR distance",
+			"RF distance",
+			"Weighted RF distance",
+			"Branch-score distance",
+			"Path distance"
+		)
+	)
+	expect_equal(summary$`SPR distance`[1], 13)
+	expect_equal(summary$`Weighted RF distance`[1], 1.2)
+	expect_equal(summary$`Branch-score distance`[1], 0.12)
+	expect_equal(summary$`Path distance`[1], 24)
+	expect_s3_class(make_topology_distance_table(summary), "flextable")
+})
+
+test_that("model selection prefers a common model within likelihood-loss tolerance", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+
+	h1_model_test <- tibble::tibble(
+		Model = c("FLU+G(4)", "FLU+G(4)+I", "FLU"),
+		df = c(34, 35, 33),
+		logLik = c(-1000, -1005, -1300),
+		AICc = c(2068, 2079, 2667),
+		AICcw = c(0.99, 0.01, 0),
+		BIC = c(2100, 2110, 2700)
+	)
+	h3_model_test <- tibble::tibble(
+		Model = c("FLU+G(4)", "FLU+G(4)+I", "FLU"),
+		df = c(40, 41, 39),
+		logLik = c(-910, -900, -1200),
+		AICc = c(1900, 1882, 2478),
+		AICcw = c(0.01, 0.99, 0),
+		BIC = c(1950, 1932, 2520)
+	)
+
+	choice <- choose_tree_model(
+		list(h1 = h1_model_test, h3 = h3_model_test),
+		performance_tolerance = 0.10
+	)
+	summary <- make_model_selection_summary(list(h1 = h1_model_test, h3 = h3_model_test), choice)
+
+	expect_equal(choice$strategy, "common")
+	expect_equal(choice$selected_model, "FLU+G(4)+I")
+	expect_equal(choice$selected_models[["h1"]], "FLU+G(4)+I")
+	expect_equal(choice$selected_models[["h3"]], "FLU+G(4)+I")
+	expect_equal(unique(summary$`Selected for ML tree`[summary$Model == "FLU+G(4)+I"]), TRUE)
+	expect_true(all(summary$`Log-likelihood loss fraction`[summary$`Selected for ML tree`] <= 0.10))
+})
+
+test_that("model selection falls back to subtype-specific models when common loss is too large", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+
+	h1_model_test <- tibble::tibble(
+		Model = c("FLU+G(4)", "FLU+G(4)+I"),
+		df = c(34, 35),
+		logLik = c(-1000, -1400),
+		AICc = c(2068, 2870),
+		AICcw = c(1, 0),
+		BIC = c(2100, 2910)
+	)
+	h3_model_test <- tibble::tibble(
+		Model = c("FLU+G(4)", "FLU+G(4)+I"),
+		df = c(40, 41),
+		logLik = c(-1400, -900),
+		AICc = c(2880, 1882),
+		AICcw = c(0, 1),
+		BIC = c(2920, 1932)
+	)
+
+	choice <- choose_tree_model(
+		list(h1 = h1_model_test, h3 = h3_model_test),
+		performance_tolerance = 0.10
+	)
+
+	expect_equal(choice$strategy, "subtype-specific")
+	expect_true(is.na(choice$selected_model))
+	expect_equal(choice$selected_models[["h1"]], "FLU+G(4)")
+	expect_equal(choice$selected_models[["h3"]], "FLU+G(4)+I")
+})

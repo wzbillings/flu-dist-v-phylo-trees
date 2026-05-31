@@ -4,6 +4,65 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-05-31 - Tree Comparison and ML Model Selection
+
+**Decision:** Rebuild tree-comparison reporting around the decrease in log
+likelihood from the optimized ML tree. SH-test p-values and Robinson-Foulds
+distances remain in the main tree-comparison table as secondary checks. SPR,
+weighted RF, Kuhner-Felsenstein/branch-score, and path distances should be
+reported in the supplement as topology-distance diagnostics. Do not implement a
+standard likelihood-ratio test for distance-tree versus ML-tree topology
+comparisons because these fixed topology comparisons are not regular nested
+model comparisons with a usual chi-square reference distribution.
+
+**Rationale:** Delta log likelihood directly answers how much sequence-model
+support is lost by imposing each distance-derived neighbor-joining topology.
+The SH test is an established likelihood-based topology comparison, and RF-type
+distances are useful topology checks, but neither should displace the primary
+likelihood-loss summary. A standard LRT would overstate inferential precision
+because the compared trees are alternative fixed/optimized topologies rather
+than nested parameter restrictions.
+
+**Evidence / citation:** Human approval in chat on 2026-05-31; implementation
+in `R/tree-building.R`, `R/plots-and-tables.R`, `_targets.R`, and
+`products/manuscript.qmd`. Method citations added for the FLU model,
+neighbor joining, SH test, RF distance, and AICc model selection.
+
+**Alternatives considered:** Keep RF distance as the main tree-comparison
+metric, frame SH test as the primary comparison, implement an LRT, or omit
+additional topology-distance diagnostics.
+
+**Impact:** The main manuscript tree table should be generated as
+`results/Tables/tree-comparison-table.rds`. The supplemental topology table
+should be generated as `results/Tables/tree-topology-distance-table.rds`.
+
+## 2026-05-31 - Common-versus-Subtype Tree Model Rule
+
+**Decision:** Compare FLU-family amino-acid substitution models with and without
+invariant sites and discrete gamma rate variation. In full mode, evaluate gamma
+category counts 4, 8, 12, 16, 20, 24, 28, and 32. Select the AICc-supported
+model within each subtype, but prefer a common model for both subtypes when its
+log-likelihood loss is no more than 10% relative to the subtype-specific
+AICc-supported model in either subtype. If no common model satisfies this rule,
+use subtype-specific models and discuss why subtype-specific model choices may
+be appropriate.
+
+**Rationale:** A common model improves comparability between H1N1 and H3N2 tree
+comparisons, but forcing a common model would be inappropriate if it materially
+degrades fit for one subtype. The 10% loss rule operationalizes the human
+preference for a common model without allowing substantial subtype-specific
+performance loss.
+
+**Evidence / citation:** Human instruction in chat on 2026-05-31.
+
+**Alternatives considered:** Always use a single preselected FLU + G + I model,
+always use subtype-specific AICc minima, or choose based on one subtype only.
+
+**Impact:** Tree-fitting targets now use `tree_model_choice`, and the model
+selection table should be regenerated before final tree-comparison claims are
+interpreted. Test-mode model-selection results are for pipeline verification
+only.
+
 ## 2026-05-30 - Subtype Contrast for Matrix-Association Estimates
 
 **Decision:** Quantify subtype differences in distance-metric performance as

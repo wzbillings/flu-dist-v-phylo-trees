@@ -132,8 +132,36 @@ list(
 	),
 	
 	# ML trees, distance trees, and tree comparisons.
-	tar_target(h1_tree_analysis, calculate_tree_analysis(h1_alignment, h1_distances, analysis_settings)),
-	tar_target(h3_tree_analysis, calculate_tree_analysis(h3_alignment, h3_distances, analysis_settings)),
+	tar_target(h1_model_test, calculate_model_test(h1_alignment, analysis_settings)),
+	tar_target(h3_model_test, calculate_model_test(h3_alignment, analysis_settings)),
+	tar_target(tree_model_tests, list(h1 = h1_model_test, h3 = h3_model_test)),
+	tar_target(
+		tree_model_choice,
+		choose_tree_model(
+			tree_model_tests,
+			performance_tolerance = analysis_settings$model_performance_tolerance
+		)
+	),
+	tar_target(
+		h1_tree_analysis,
+		calculate_tree_analysis(
+			h1_alignment,
+			h1_distances,
+			analysis_settings,
+			model_test = h1_model_test,
+			model_choice = tree_model_choice
+		)
+	),
+	tar_target(
+		h3_tree_analysis,
+		calculate_tree_analysis(
+			h3_alignment,
+			h3_distances,
+			analysis_settings,
+			model_test = h3_model_test,
+			model_choice = tree_model_choice
+		)
+	),
 	tar_target(tree_analyses, list(h1 = h1_tree_analysis, h3 = h3_tree_analysis)),
 	tar_target(
 		distances_with_tree_by_subtype,
@@ -155,12 +183,17 @@ list(
 	),
 	tar_target(
 		h1_model_test_file,
-		write_rds_target(h1_tree_analysis$model_test, "results/derived/h1-model-test.rds"),
+		write_rds_target(h1_model_test, "results/derived/h1-model-test.rds"),
 		format = "file"
 	),
 	tar_target(
 		h3_model_test_file,
-		write_rds_target(h3_tree_analysis$model_test, "results/derived/h3-model-test.rds"),
+		write_rds_target(h3_model_test, "results/derived/h3-model-test.rds"),
+		format = "file"
+	),
+	tar_target(
+		tree_model_choice_file,
+		write_rds_target(tree_model_choice, "results/derived/tree-model-choice.rds"),
 		format = "file"
 	),
 	tar_target(
@@ -353,11 +386,29 @@ list(
 		format = "file"
 	),
 	tar_target(
-		stat_table_file,
-		write_stat_table(
+		tree_comparison_table_file,
+		write_tree_comparison_table(
 			h1_tree_analysis,
 			h3_tree_analysis,
-			"results/Tables/stat-table.rds"
+			"results/Tables/tree-comparison-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		tree_topology_distance_table_file,
+		write_topology_distance_table(
+			h1_tree_analysis,
+			h3_tree_analysis,
+			"results/Tables/tree-topology-distance-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		model_selection_table_file,
+		write_model_selection_table(
+			tree_model_tests,
+			tree_model_choice,
+			"results/Tables/tree-model-selection-table.rds"
 		),
 		format = "file"
 	),
@@ -376,7 +427,7 @@ list(
 			cophenetic_mantel_table_file,
 			cophenetic_subtype_contrast_table_file,
 			cophenetic_subtype_contrast_plot_file,
-			stat_table_file,
+			tree_comparison_table_file,
 			bibliography_file,
 			csl_file
 		),
@@ -393,6 +444,8 @@ list(
 			cophenetic_subtype_contrast_sensitivity_file,
 			cophenetic_subtype_contrast_sensitivity_table_file,
 			cophenetic_correlation_table_file,
+			model_selection_table_file,
+			tree_topology_distance_table_file,
 			bibliography_file,
 			csl_file
 		),

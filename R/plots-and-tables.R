@@ -698,73 +698,272 @@ write_combined_ml_tree_plot <- function(h1_tree_analysis, h3_tree_analysis, path
 	path
 }
 
-format_sh_table <- function(tree_analysis, subtype_label) {
+tree_comparison_tree_labels <- function() {
+	c("ml" = "Maximum likelihood baseline", distance_method_labels())
+}
+
+tree_analysis_method_order <- function() {
+	names(tree_comparison_tree_labels())
+}
+
+extract_tree_metric_to_ml <- function(tree_analysis, metric) {
+	metric_matrix <- tree_analysis$tree_distance_metrics[[metric]]
+	if (is.null(metric_matrix)) {
+		return(rep(NA_real_, length(tree_analysis_method_order())))
+	}
+	if (!"ml" %in% colnames(metric_matrix)) {
+		stop(metric, " tree-distance matrix must include an 'ml' column.", call. = FALSE)
+	}
+	method_order <- tree_analysis_method_order()
+	if (!all(method_order %in% rownames(metric_matrix))) {
+		missing <- setdiff(method_order, rownames(metric_matrix))
+		stop(
+			metric,
+			" tree-distance matrix is missing row(s): ",
+			paste(missing, collapse = ", "),
+			call. = FALSE
+		)
+	}
+	as.numeric(metric_matrix[method_order, "ml"])
+}
+
+make_tree_comparison_summary_one <- function(tree_analysis, subtype_label = NULL) {
 	sh_table <- tibble::as_tibble(tree_analysis$sh_test)
-	tree_labels <- c(
-		"Maximum likelihood baseline",
-		"Temporal distance",
-		"Grantham distance",
-		"p-Epitope distance",
-		"Cartographic distance"
-	)
+	tree_labels <- tree_comparison_tree_labels()
+	method_order <- tree_analysis_method_order()
 	
-	rf_distance <- rep(NA_real_, nrow(sh_table))
-	if (!is.null(tree_analysis$tree_distance_metrics$RF)) {
-		rf_matrix <- tree_analysis$tree_distance_metrics$RF
-		if ("ml" %in% colnames(rf_matrix)) {
-			rf_distance <- as.numeric(rf_matrix[, "ml"])
-		}
+	if (nrow(sh_table) != length(method_order)) {
+		stop(
+			"SH-test table must have ",
+			length(method_order),
+			" rows in ML/tree-method order.",
+			call. = FALSE
+		)
+	}
+	if (is.null(subtype_label)) {
+		subtype_label <- subtype_display_label(tree_analysis$subtype)
 	}
 	
 	sh_table |>
 		dplyr::mutate(
 			Subtype = subtype_label,
-			Tree = tree_labels[seq_len(dplyr::n())],
+			tree_key = method_order,
+			`Distance tree` = unname(tree_labels[.data$tree_key]),
 			log_likelihood = .data[["ln L"]],
 			delta_log_likelihood = .data[["Diff ln L"]],
 			sh_p_value = .data[["p-value"]],
-			rf_distance = rf_distance[seq_len(dplyr::n())],
+			rf_distance = extract_tree_metric_to_ml(tree_analysis, "RF"),
+			ml_log_likelihood = .data$log_likelihood[.data$tree_key == "ml"],
 			.before = 1
 		) |>
+		dplyr::filter(.data$tree_key != "ml") |>
 		dplyr::transmute(
 			.data$Subtype,
-			.data$Tree,
-			`log likelihood` = sprintf("%.1f", .data$log_likelihood),
-			`Delta log likelihood` = sprintf("%.1f", .data$delta_log_likelihood),
-			`SH p-value` = dplyr::if_else(
-				.data$sh_p_value < 0.001,
-				"< 0.001",
-				sprintf("%.3f", .data$sh_p_value)
-			),
-			`RF distance` = dplyr::if_else(
-				.data$Tree == "Maximum likelihood baseline",
-				"NA",
-				as.character(.data$rf_distance)
-			)
+			.data$`Distance tree`,
+			`Delta log likelihood` = .data$delta_log_likelihood,
+			`Tree log likelihood` = .data$log_likelihood,
+			`ML log likelihood` = .data$ml_log_likelihood,
+			`SH p-value` = .data$sh_p_value,
+			`RF distance` = .data$rf_distance
 		)
 }
 
-make_stat_table <- function(h1_tree_analysis, h3_tree_analysis) {
-	table_data <- dplyr::bind_rows(
-		format_sh_table(h1_tree_analysis, "H1N1"),
-		format_sh_table(h3_tree_analysis, "H3N2")
+make_tree_comparison_summary <- function(h1_tree_analysis, h3_tree_analysis) {
+	dplyr::bind_rows(
+		make_tree_comparison_summary_one(h1_tree_analysis, "H1N1"),
+		make_tree_comparison_summary_one(h3_tree_analysis, "H3N2")
 	)
+}
+
+format_tree_comparison_summary <- function(tree_comparison_summary) {
+	tree_comparison_summary |>
+		dplyr::mutate(
+			`Delta log likelihood` = sprintf("%.1f", .data$`Delta log likelihood`),
+			`Tree log likelihood` = sprintf("%.1f", .data$`Tree log likelihood`),
+			`ML log likelihood` = sprintf("%.1f", .data$`ML log likelihood`),
+			`SH p-value` = format_p_value(.data$`SH p-value`),
+			`RF distance` = as.character(.data$`RF distance`)
+		)
+}
+
+make_tree_comparison_table <- function(tree_comparison_summary) {
+	table_data <- format_tree_comparison_summary(tree_comparison_summary)
 	
 	table_data |>
 		flextable::flextable() |>
-		flextable::merge_v(j = 1) |>
-		flextable::valign(j = 1, valign = "top") |>
+		flextable::merge_v(j = c("Subtype", "ML log likelihood")) |>
+		flextable::valign(j = c("Subtype", "ML log likelihood"), valign = "top") |>
 		flextable::fix_border_issues() |>
 		flextable::autofit() |>
 		flextable::set_caption(paste0(
-			"Log likelihood of constructed trees, change in log likelihood from ",
-			"the ML tree, Shimodaira-Hasegawa test p-value, and ",
-			"Robinson-Foulds distance from the ML tree."
+			"Distance-tree comparison against the optimized maximum-likelihood ",
+			"tree. Delta log likelihood is the primary comparison metric; ",
+			"Shimodaira-Hasegawa p-values and Robinson-Foulds distances are ",
+			"secondary checks."
 		))
 }
 
-write_stat_table <- function(h1_tree_analysis, h3_tree_analysis, path) {
-	table <- make_stat_table(h1_tree_analysis, h3_tree_analysis)
+write_tree_comparison_table <- function(h1_tree_analysis, h3_tree_analysis, path) {
+	table <- make_tree_comparison_summary(h1_tree_analysis, h3_tree_analysis) |>
+		make_tree_comparison_table()
+	write_rds_target(table, path)
+}
+
+topology_metric_labels <- function() {
+	c(
+		SPR = "SPR distance",
+		RF = "RF distance",
+		wRF = "Weighted RF distance",
+		KF = "Branch-score distance",
+		path = "Path distance"
+	)
+}
+
+make_topology_distance_summary_one <- function(tree_analysis, subtype_label = NULL) {
+	method_order <- tree_analysis_method_order()
+	if (is.null(subtype_label)) {
+		subtype_label <- subtype_display_label(tree_analysis$subtype)
+	}
+
+	base <- tibble::tibble(
+		tree_key = method_order,
+		Subtype = subtype_label,
+		`Distance tree` = unname(tree_comparison_tree_labels()[method_order])
+	) |>
+		dplyr::filter(.data$tree_key != "ml")
+
+	metric_values <- purrr::imap(
+		topology_metric_labels(),
+		\(metric_label, metric_name) {
+			stats::setNames(
+				list(extract_tree_metric_to_ml(tree_analysis, metric_name)[method_order != "ml"]),
+				metric_label
+			)
+		}
+	) |>
+		purrr::list_c()
+
+	dplyr::bind_cols(
+		base |> dplyr::select(-dplyr::all_of("tree_key")),
+		tibble::as_tibble(metric_values)
+	)
+}
+
+make_topology_distance_summary <- function(h1_tree_analysis, h3_tree_analysis) {
+	dplyr::bind_rows(
+		make_topology_distance_summary_one(h1_tree_analysis, "H1N1"),
+		make_topology_distance_summary_one(h3_tree_analysis, "H3N2")
+	)
+}
+
+make_topology_distance_table <- function(topology_distance_summary) {
+	topology_distance_summary |>
+		dplyr::mutate(
+			dplyr::across(
+				dplyr::all_of(unname(topology_metric_labels())),
+				\(x) sprintf("%.2f", x)
+			)
+		) |>
+		flextable::flextable() |>
+		flextable::merge_v(j = "Subtype") |>
+		flextable::valign(j = "Subtype", valign = "top") |>
+		flextable::fix_border_issues() |>
+		flextable::autofit() |>
+		flextable::set_caption(paste0(
+			"Supplemental topology-distance metrics between each distance tree ",
+			"and the optimized maximum-likelihood tree."
+		))
+}
+
+write_topology_distance_table <- function(h1_tree_analysis, h3_tree_analysis, path) {
+	table <- make_topology_distance_summary(h1_tree_analysis, h3_tree_analysis) |>
+		make_topology_distance_table()
+	write_rds_target(table, path)
+}
+
+make_model_selection_summary <- function(model_tests_by_subtype, model_choice) {
+	purrr::imap_dfr(
+		model_tests_by_subtype,
+		\(model_test, subtype) {
+			best_model <- best_model_by_aicc(model_test)
+			selected_model <- model_choice$selected_models[[subtype]]
+			if (!"model_test_gamma_categories" %in% names(model_test)) {
+				model_test$model_test_gamma_categories <- NA_integer_
+			}
+			model_test |>
+				dplyr::mutate(
+					Subtype = subtype_display_label(subtype),
+					`Delta AICc` = .data$AICc - min(.data$AICc, na.rm = TRUE),
+					`Best by AICc` = .data$Model == best_model,
+					`Selected for ML tree` = .data$Model == selected_model,
+					`Log-likelihood loss fraction` = purrr::map_dbl(
+						.data$Model,
+						\(model) model_log_likelihood_loss_fraction(model_test, model)
+					),
+					.before = 1
+				)
+		}
+	) |>
+		dplyr::select(
+			"Subtype",
+			"Model",
+			"model_test_gamma_categories",
+			"df",
+			"logLik",
+			"AICc",
+			"Delta AICc",
+			"AICcw",
+			"BIC",
+			"Log-likelihood loss fraction",
+			"Best by AICc",
+			"Selected for ML tree"
+		)
+}
+
+make_model_selection_table <- function(model_selection_summary, model_choice) {
+	strategy_note <- if (identical(model_choice$strategy, "common")) {
+		paste0(
+			"Common model selected for both subtypes: ",
+			model_choice$selected_model,
+			"."
+		)
+	} else {
+		"Subtype-specific models selected because no common model met the likelihood-loss tolerance."
+	}
+
+	model_selection_summary |>
+		dplyr::mutate(
+			logLik = sprintf("%.1f", .data$logLik),
+			AICc = sprintf("%.1f", .data$AICc),
+			`Delta AICc` = sprintf("%.1f", .data$`Delta AICc`),
+			AICcw = sprintf("%.3f", .data$AICcw),
+			BIC = sprintf("%.1f", .data$BIC),
+			`Log-likelihood loss fraction` = sprintf("%.4f", .data$`Log-likelihood loss fraction`),
+			`Best by AICc` = dplyr::if_else(.data$`Best by AICc`, "yes", ""),
+			`Selected for ML tree` = dplyr::if_else(.data$`Selected for ML tree`, "yes", "")
+		) |>
+		flextable::flextable() |>
+		flextable::merge_v(j = "Subtype") |>
+		flextable::valign(j = "Subtype", valign = "top") |>
+		flextable::fix_border_issues() |>
+		flextable::autofit() |>
+		flextable::set_caption(paste0(
+			"FLU-family amino-acid substitution model comparison by subtype. ",
+			"Models are selected by AICc within subtype, then a common model is ",
+			"preferred when its log-likelihood loss is within ",
+			sprintf("%.0f%%", 100 * model_choice$performance_tolerance),
+			" for each subtype. ",
+			strategy_note
+		))
+}
+
+write_model_selection_table <- function(
+		model_tests_by_subtype,
+		model_choice,
+		path
+	) {
+	table <- make_model_selection_summary(model_tests_by_subtype, model_choice) |>
+		make_model_selection_table(model_choice)
 	write_rds_target(table, path)
 }
 
