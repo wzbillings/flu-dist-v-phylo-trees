@@ -4,6 +4,39 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-01 - Antigenic Cartography Input Diagnostics
+
+**Decision:** Extract and report antigenic-cartography diagnostics from the
+stored H1N1 and H3N2 `.ace` inputs. Mandatory reported diagnostics are map
+dimensionality, strain/antigen count, serum count, stored projection count,
+stored map stress, measured and missing titer counts, missingness percentage,
+lower-bound/censored titer counts, and observed titer range. Optimizer history
+beyond stored stress and projection count should be treated as best-effort and
+reported as unavailable when absent from the stored `.ace` input rather than
+blocking manuscript work. Report the diagnostics in the supplement first, with
+a concise main-methods note.
+
+**Rationale:** The cartographic distance methods need to be auditable from the
+available first-pass `.ace` inputs while preserving the boundary that full
+cartography-generation reproducibility will be addressed later. Supplement-first
+placement documents the map and titer metadata without overloading the main
+results.
+
+**Evidence / citation:** Human approval in chat on 2026-06-01; implementation
+in `R/cartography-diagnostics.R`, `_targets.R`, `products/manuscript.qmd`, and
+`products/supplement.qmd`.
+
+**Alternatives considered:** Require complete optimizer history before
+publication work can continue, omit unavailable diagnostics entirely, or place
+the full diagnostics table in the main text.
+
+**Impact:** The `.ace` files remain read-only first-pass inputs. A separate
+paper is planned to describe construction of the human-serum antigenic
+cartographies. The current manuscript should acknowledge that using the same HAI
+dataset to build the maps and compare cartographic distances is a limitation,
+while noting that no comparable alternative is currently available for this
+strain panel.
+
 ## 2026-05-31 - ML Tree Branch Support and Bootstrap Topology Stability
 
 **Decision:** Add ML-tree robustness diagnostics using nonparametric

@@ -75,6 +75,8 @@ render_quarto_supplement <- function(
 		subtype_contrast_sensitivity_table_file,
 		pearson_correlation_table_file,
 		model_selection_table_file,
+		cartography_diagnostics_summary_file,
+		cartography_diagnostics_table_file,
 		tree_topology_distance_table_file,
 		ml_tree_support_summary_file,
 		ml_tree_support_table_file,
@@ -92,6 +94,8 @@ render_quarto_supplement <- function(
 	validate_file_exists(subtype_contrast_sensitivity_table_file, "subtype contrast sensitivity table")
 	validate_file_exists(pearson_correlation_table_file, "descriptive Pearson distance correlation table")
 	validate_file_exists(model_selection_table_file, "tree model-selection table")
+	validate_file_exists(cartography_diagnostics_summary_file, "cartography diagnostics summary")
+	validate_file_exists(cartography_diagnostics_table_file, "cartography diagnostics table")
 	validate_file_exists(tree_topology_distance_table_file, "tree topology-distance table")
 	validate_file_exists(ml_tree_support_summary_file, "ML tree support summary")
 	validate_file_exists(ml_tree_support_table_file, "ML tree support table")

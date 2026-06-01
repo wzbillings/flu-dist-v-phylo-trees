@@ -22,6 +22,9 @@ The implemented tests cover fast deterministic behavior:
 - strain-level bootstrap helper behavior for distance-correlation intervals;
 - Mantel matrix-comparison summaries that exclude diagonal and duplicate
   distance-matrix entries;
+- antigenic-cartography diagnostics extracted from stored `.ace` map inputs,
+  including map dimensions, strain/serum counts, stress metadata, and titer
+  missingness summaries;
 - tree-comparison table construction from toy tree-analysis objects, including
   delta log likelihood, SH p-values, RF distance, supplemental topology
   distances, and common-versus-subtype model-selection logic.
@@ -55,6 +58,9 @@ Assumptions:
 - `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, vector normalization, shared-strain alignment, unique off-diagonal pair extraction, and small deterministic Mantel permutation result structures.
 - `tests/testthat/test-grantham-distance.R`: tests canonical Grantham matrix values, per-comparable-site averaging, explicit gap/ambiguous residue exclusion, and named symmetric matrix output.
 - `tests/testthat/test-p-epitope-calculator.R`: tests p-epitope site lookup, invalid subtype handling, and basic p-epitope distance-matrix properties.
+- `tests/testthat/test-cartography-diagnostics.R`: tests pure helper behavior
+  for `.ace`-derived map diagnostics, including titer missingness summaries,
+  unavailable optimizer metadata reporting, and supplement-ready table labels.
 - `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, weighted correlations, Fisher/Wald confidence interval guardrails, strain-level bootstrap weighting helpers, manuscript-ready Mantel summary structure, tree-comparison table helpers, supplemental topology-distance table helpers, and model-selection summaries.
 - `tests/testthat/test-tree-building.R`: tests ML-tree support and
   topology-stability helper behavior with toy `phylo` and `multiPhylo` objects,
