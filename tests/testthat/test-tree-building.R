@@ -34,6 +34,23 @@ test_that("branch-support details and summaries preserve bootstrap context", {
 	expect_true(summary$branches_ge_70_percent <= summary$internal_branches)
 })
 
+test_that("branch-support details reject inconsistent bootstrap context", {
+	skip_if_not_installed("ape")
+	skip_if_not_installed("phangorn")
+
+	toy <- make_support_toy_trees()
+
+	expect_error(
+		calculate_branch_support_detail(
+			toy$ml_tree,
+			toy$bootstrap_trees,
+			subtype = "h1",
+			bootstrap_replicates = length(toy$bootstrap_trees) + 1L
+		),
+		"must match the number of bootstrap trees"
+	)
+})
+
 test_that("bootstrap topology stability reports RF-style companion metrics", {
 	skip_if_not_installed("ape")
 	skip_if_not_installed("phangorn")
@@ -84,17 +101,45 @@ test_that("bootstrap topology stability records unresolved-tree distance failure
 	bootstrap_trees <- list(star_tree)
 	class(bootstrap_trees) <- "multiPhylo"
 
-	stability <- calculate_bootstrap_topology_stability(
-		toy$ml_tree,
-		bootstrap_trees,
-		subtype = "h1"
+	stability <- suppressMessages(
+		calculate_bootstrap_topology_stability(
+			toy$ml_tree,
+			bootstrap_trees,
+			subtype = "h1"
+		)
 	)
 	summary <- summarise_bootstrap_topology_stability(stability)
 
-	expect_true(any(is.na(dplyr::select(stability, -subtype, -bootstrap_replicate, -distance_status))))
+	expect_true(all(is.na(dplyr::select(stability, -subtype, -bootstrap_replicate, -distance_status))))
 	expect_equal(stability$distance_status[[1]], "distance_failed")
 	expect_equal(summary$distance_failures, 1)
 	expect_equal(summary$usable_topology_replicates, 0)
+	expect_true(is.na(summary$identical_topology_fraction))
+	expect_false(is.nan(summary$identical_topology_fraction))
+})
+
+test_that("bootstrap topology summary ignores failed rows with partial distances", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+
+	topology_stability <- tibble::tibble(
+		subtype = c("h1", "h1"),
+		bootstrap_replicate = c(1L, 2L),
+		rf_distance = c(0, 0),
+		normalized_rf_distance = c(0, 1),
+		weighted_rf_distance = c(0, 10),
+		branch_score_distance = c(0, 20),
+		path_distance = c(0, 30),
+		distance_status = c("ok", "distance_failed")
+	)
+
+	summary <- summarise_bootstrap_topology_stability(topology_stability)
+
+	expect_equal(summary$bootstrap_replicates, 2)
+	expect_equal(summary$usable_topology_replicates, 1)
+	expect_equal(summary$distance_failures, 1)
+	expect_equal(summary$identical_topology_fraction, 1)
+	expect_equal(summary$median_normalized_rf_distance, 0)
 })
 
 test_that("ML support wrapper accepts precomputed bootstrap trees for toy objects", {

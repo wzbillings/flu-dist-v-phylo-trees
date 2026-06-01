@@ -284,9 +284,13 @@ calculate_branch_support_detail <- function(
 	) {
 	reference_tree <- as_phylo_tree(reference_tree)
 	validate_bootstrap_trees(bootstrap_trees, reference_tree)
+	actual_bootstrap_replicates <- length(bootstrap_trees)
 	bootstrap_replicates <- as.integer(bootstrap_replicates)
 	if (length(bootstrap_replicates) != 1 || is.na(bootstrap_replicates) || bootstrap_replicates < 1) {
 		stop("Bootstrap replicate count must be a positive integer.", call. = FALSE)
+	}
+	if (bootstrap_replicates != actual_bootstrap_replicates) {
+		stop("Bootstrap replicate count must match the number of bootstrap trees.", call. = FALSE)
 	}
 	
 	support_counts <- ape::prop.clades(reference_tree, bootstrap_trees, rooted = FALSE)
@@ -337,10 +341,21 @@ add_branch_support_labels <- function(reference_tree, branch_support_detail) {
 }
 
 tree_distance_to_reference <- function(reference_tree, tree, distance_function, ...) {
-	tryCatch(
-		as.numeric(distance_function(reference_tree, tree, ...)),
+	warned <- FALSE
+	value <- tryCatch(
+		withCallingHandlers(
+			as.numeric(distance_function(reference_tree, tree, ...)),
+			warning = function(w) {
+				warned <<- TRUE
+				invokeRestart("muffleWarning")
+			}
+		),
 		error = function(e) NA_real_
 	)
+	if (warned) {
+		return(NA_real_)
+	}
+	value
 }
 
 max_or_na <- function(x) {
@@ -348,6 +363,24 @@ max_or_na <- function(x) {
 		return(NA_real_)
 	}
 	max(x, na.rm = TRUE)
+}
+
+mean_or_na <- function(x) {
+	if (length(x) == 0 || all(is.na(x))) {
+		return(NA_real_)
+	}
+	mean(x, na.rm = TRUE)
+}
+
+median_or_na <- function(x) {
+	if (length(x) == 0 || all(is.na(x))) {
+		return(NA_real_)
+	}
+	stats::median(x, na.rm = TRUE)
+}
+
+usable_topology_metric <- function(metric, distance_status) {
+	dplyr::if_else(distance_status == "ok", metric, NA_real_)
 }
 
 calculate_bootstrap_topology_stability <- function(reference_tree, bootstrap_trees, subtype) {
@@ -358,59 +391,57 @@ calculate_bootstrap_topology_stability <- function(reference_tree, bootstrap_tre
 		seq_along(bootstrap_trees),
 		\(replicate_id) {
 			tree <- bootstrap_trees[[replicate_id]]
-			rf_distance <- tree_distance_to_reference(
-				reference_tree,
-				tree,
-				phangorn::RF.dist,
-				normalize = FALSE,
-				rooted = FALSE
+			distances <- c(
+				rf_distance = tree_distance_to_reference(
+					reference_tree,
+					tree,
+					phangorn::RF.dist,
+					normalize = FALSE,
+					rooted = FALSE
+				),
+				normalized_rf_distance = tree_distance_to_reference(
+					reference_tree,
+					tree,
+					phangorn::RF.dist,
+					normalize = TRUE,
+					rooted = FALSE
+				),
+				weighted_rf_distance = tree_distance_to_reference(
+					reference_tree,
+					tree,
+					phangorn::wRF.dist,
+					normalize = FALSE,
+					rooted = FALSE
+				),
+				branch_score_distance = tree_distance_to_reference(
+					reference_tree,
+					tree,
+					phangorn::KF.dist,
+					rooted = FALSE
+				),
+				path_distance = tree_distance_to_reference(
+					reference_tree,
+					tree,
+					phangorn::path.dist,
+					use.weight = FALSE
+				)
 			)
-			normalized_rf_distance <- tree_distance_to_reference(
-				reference_tree,
-				tree,
-				phangorn::RF.dist,
-				normalize = TRUE,
-				rooted = FALSE
-			)
-			weighted_rf_distance <- tree_distance_to_reference(
-				reference_tree,
-				tree,
-				phangorn::wRF.dist,
-				normalize = FALSE,
-				rooted = FALSE
-			)
-			branch_score_distance <- tree_distance_to_reference(
-				reference_tree,
-				tree,
-				phangorn::KF.dist,
-				rooted = FALSE
-			)
-			path_distance <- tree_distance_to_reference(
-				reference_tree,
-				tree,
-				phangorn::path.dist,
-				use.weight = FALSE
-			)
+			distance_status <- if (any(is.na(distances))) {
+				distances[] <- NA_real_
+				"distance_failed"
+			} else {
+				"ok"
+			}
 			
 			tibble::tibble(
 				subtype = subtype,
 				bootstrap_replicate = as.integer(replicate_id),
-				rf_distance = rf_distance,
-				normalized_rf_distance = normalized_rf_distance,
-				weighted_rf_distance = weighted_rf_distance,
-				branch_score_distance = branch_score_distance,
-				path_distance = path_distance,
-				distance_status = dplyr::if_else(
-					any(is.na(c(
-						rf_distance,
-						normalized_rf_distance,
-						weighted_rf_distance,
-						branch_score_distance,
-						path_distance
-					))),
-					"distance_failed",
-					"ok"
-				)
+				rf_distance = unname(distances[["rf_distance"]]),
+				normalized_rf_distance = unname(distances[["normalized_rf_distance"]]),
+				weighted_rf_distance = unname(distances[["weighted_rf_distance"]]),
+				branch_score_distance = unname(distances[["branch_score_distance"]]),
+				path_distance = unname(distances[["path_distance"]]),
+				distance_status = distance_status
 			)
 		}
 	)
@@ -437,13 +468,35 @@ summarise_bootstrap_topology_stability <- function(topology_stability) {
 			bootstrap_replicates = dplyr::n(),
 			usable_topology_replicates = sum(.data$distance_status == "ok", na.rm = TRUE),
 			distance_failures = sum(.data$distance_status != "ok", na.rm = TRUE),
-			identical_topology_fraction = mean(.data$rf_distance == 0, na.rm = TRUE),
-			median_normalized_rf_distance = stats::median(.data$normalized_rf_distance, na.rm = TRUE),
-			mean_normalized_rf_distance = mean(.data$normalized_rf_distance, na.rm = TRUE),
-			max_normalized_rf_distance = max_or_na(.data$normalized_rf_distance),
-			median_weighted_rf_distance = stats::median(.data$weighted_rf_distance, na.rm = TRUE),
-			median_branch_score_distance = stats::median(.data$branch_score_distance, na.rm = TRUE),
-			median_path_distance = stats::median(.data$path_distance, na.rm = TRUE),
+			identical_topology_fraction = mean_or_na(dplyr::if_else(
+				.data$distance_status == "ok",
+				.data$rf_distance == 0,
+				NA
+			)),
+			median_normalized_rf_distance = median_or_na(usable_topology_metric(
+				.data$normalized_rf_distance,
+				.data$distance_status
+			)),
+			mean_normalized_rf_distance = mean_or_na(usable_topology_metric(
+				.data$normalized_rf_distance,
+				.data$distance_status
+			)),
+			max_normalized_rf_distance = max_or_na(usable_topology_metric(
+				.data$normalized_rf_distance,
+				.data$distance_status
+			)),
+			median_weighted_rf_distance = median_or_na(usable_topology_metric(
+				.data$weighted_rf_distance,
+				.data$distance_status
+			)),
+			median_branch_score_distance = median_or_na(usable_topology_metric(
+				.data$branch_score_distance,
+				.data$distance_status
+			)),
+			median_path_distance = median_or_na(usable_topology_metric(
+				.data$path_distance,
+				.data$distance_status
+			)),
 			.groups = "drop"
 		)
 }
