@@ -4,6 +4,37 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-01 - Strain Provenance and Inclusion Audit Outputs
+
+**Decision:** Add pipeline-derived strain provenance and inclusion audit
+outputs for the current sequence source table. Report all source sequence rows,
+analysis inclusion status, rows excluded because they are absent from the stored
+cartography maps, source/accession completeness, source and alignment
+full-length status, and unique off-diagonal pair counts by subtype and distance
+metric. Place detailed provenance and audit tables in the supplement-ready
+outputs, with a concise main-manuscript methods note.
+
+**Rationale:** The publishability review identified missing accession,
+provenance, exclusion, and pair-count reporting as a reproducibility gap. The
+new protein sequence CSV already contains source/accession fields and
+cartography-overlap inclusion status can be derived from the pipeline, so these
+audits should be generated from targets rather than manually maintained.
+
+**Evidence / citation:** Implementation in `R/provenance-audit.R`,
+`_targets.R`, `products/manuscript.qmd`, and `products/supplement.qmd`.
+The analysis set remains governed by the 2026-06-01 cartography-overlap
+inclusion decision above.
+
+**Alternatives considered:** Put the full provenance table in the main
+manuscript, report only aggregate counts, or leave accession/source details as
+unrendered internal metadata. Supplement-first reporting keeps the main text
+concise while preserving auditability.
+
+**Impact:** The tables make excluded source rows and pair counts explicit
+without changing the analysis panel or distance calculations. Final
+source-citation wording still requires the deferred human accession/source
+citation review before submission.
+
 ## 2026-06-01 - Protein Sequence Source Table and Cartography-Overlap Inclusion
 
 **Decision:** Replace the prior sequence workbook plus virus-name metadata CSV

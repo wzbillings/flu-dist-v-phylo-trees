@@ -18,6 +18,8 @@ The implemented tests cover fast deterministic behavior:
   local Grantham amino-acid distance calculations;
 - toy-data behavior for protein-sequence cleaning, cartography-overlap
   inclusion, and sequence-cleaning audits;
+- strain provenance, accession/source completeness, inclusion/exclusion flow
+  summaries, and unique-pair count audit helpers;
 - protein-only alignment summaries and alignment-derived full-length checks;
 - p-epitope site lookup and basic p-epitope distance-matrix structure;
 - lightweight manuscript/table helper functions that do not render plots, tables, or documents;
@@ -60,6 +62,9 @@ Assumptions:
   cleaning, subtype splitting, duplicate source-record detection,
   cartography-overlap inclusion, and cleaning-audit summaries with inline toy
   data.
+- `tests/testthat/test-provenance-audit.R`: tests strain provenance records,
+  source/accession completeness labels, inclusion/exclusion flow summaries, and
+  unique off-diagonal pair-count audits with inline toy data.
 - `tests/testthat/test-alignment.R`: tests protein-only alignment audit
   summaries and full-length checks computed from aligned non-gap protein
   lengths.
