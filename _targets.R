@@ -55,6 +55,10 @@ list(
 		dplyr::bind_rows(alignment_audit(h1_alignment), alignment_audit(h3_alignment))
 	),
 	tar_target(
+		alignment_completeness,
+		make_alignment_completeness_records(list(h1 = h1_alignment, h3 = h3_alignment))
+	),
+	tar_target(
 		h1_protein_alignment_file,
 		write_rds_target(h1_alignment$protein_msa, "results/derived/h1-pro-alignment.rds"),
 		format = "file"
@@ -101,6 +105,17 @@ list(
 	tar_target(distances_by_subtype, list(h1 = h1_distances, h3 = h3_distances)),
 	tar_target(distance_table, combine_distance_tables(distances_by_subtype, unique_pairs = TRUE)),
 	tar_target(distance_table_normalized, normalize_distance_table(distance_table)),
+	tar_target(strain_pair_counts, make_pair_count_audit(distance_table, clean_sequences)),
+	tar_target(
+		strain_provenance_records,
+		make_strain_provenance_records(
+			raw_sequences,
+			cartography_antigen_names,
+			alignment_completeness
+		)
+	),
+	tar_target(sequence_source_summary, make_sequence_source_summary(strain_provenance_records)),
+	tar_target(strain_flow_summary, make_strain_flow_summary(strain_provenance_records, strain_pair_counts)),
 	tar_target(
 		distance_comparisons,
 		compare_distance_matrices(distances_by_subtype, analysis_settings)
@@ -128,6 +143,26 @@ list(
 	tar_target(
 		distance_comparison_file,
 		write_rds_target(distance_comparisons, "results/derived/distance-comparisons.rds"),
+		format = "file"
+	),
+	tar_target(
+		strain_provenance_file,
+		write_rds_target(strain_provenance_records, "results/derived/strain-provenance-records.rds"),
+		format = "file"
+	),
+	tar_target(
+		sequence_source_summary_file,
+		write_rds_target(sequence_source_summary, "results/derived/sequence-source-summary.rds"),
+		format = "file"
+	),
+	tar_target(
+		strain_flow_summary_file,
+		write_rds_target(strain_flow_summary, "results/derived/strain-flow-summary.rds"),
+		format = "file"
+	),
+	tar_target(
+		strain_pair_count_file,
+		write_rds_target(strain_pair_counts, "results/derived/strain-pair-counts.rds"),
 		format = "file"
 	),
 	tar_target(
@@ -455,6 +490,38 @@ list(
 		format = "file"
 	),
 	tar_target(
+		strain_flow_table_file,
+		write_strain_flow_table(
+			strain_flow_summary,
+			"results/Tables/strain-flow-audit-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		strain_accession_table_file,
+		write_strain_accession_table(
+			strain_provenance_records,
+			"results/Tables/strain-provenance-accession-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		strain_pair_count_table_file,
+		write_pair_count_table(
+			strain_pair_counts,
+			"results/Tables/strain-pair-count-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		sequence_source_summary_table_file,
+		write_sequence_source_summary_table(
+			sequence_source_summary,
+			"results/Tables/sequence-source-summary-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
 		ml_tree_support_summary,
 		make_ml_tree_support_summary(h1_ml_tree_support, h3_ml_tree_support)
 	),
@@ -529,6 +596,10 @@ list(
 			cophenetic_subtype_contrast_sensitivity_table_file,
 			cophenetic_correlation_table_file,
 			model_selection_table_file,
+			strain_flow_table_file,
+			strain_accession_table_file,
+			strain_pair_count_table_file,
+			sequence_source_summary_table_file,
 			cartography_diagnostics_summary_file,
 			cartography_diagnostics_table_file,
 			tree_topology_distance_table_file,

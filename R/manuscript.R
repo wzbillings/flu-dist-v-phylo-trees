@@ -75,6 +75,10 @@ render_quarto_supplement <- function(
 		subtype_contrast_sensitivity_table_file,
 		pearson_correlation_table_file,
 		model_selection_table_file,
+		strain_flow_table_file,
+		strain_accession_table_file,
+		strain_pair_count_table_file,
+		sequence_source_summary_table_file,
 		cartography_diagnostics_summary_file,
 		cartography_diagnostics_table_file,
 		tree_topology_distance_table_file,
@@ -94,6 +98,10 @@ render_quarto_supplement <- function(
 	validate_file_exists(subtype_contrast_sensitivity_table_file, "subtype contrast sensitivity table")
 	validate_file_exists(pearson_correlation_table_file, "descriptive Pearson distance correlation table")
 	validate_file_exists(model_selection_table_file, "tree model-selection table")
+	validate_file_exists(strain_flow_table_file, "strain flow audit table")
+	validate_file_exists(strain_accession_table_file, "strain provenance accession table")
+	validate_file_exists(strain_pair_count_table_file, "strain pair-count table")
+	validate_file_exists(sequence_source_summary_table_file, "sequence source summary table")
 	validate_file_exists(cartography_diagnostics_summary_file, "cartography diagnostics summary")
 	validate_file_exists(cartography_diagnostics_table_file, "cartography diagnostics table")
 	validate_file_exists(tree_topology_distance_table_file, "tree topology-distance table")

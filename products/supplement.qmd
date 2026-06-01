@@ -59,6 +59,56 @@ be matched to antigens in the stored cartography maps. Sequence records outside
 those stored maps are retained in the source table for provenance but are not
 used in the distance comparisons in this manuscript.
 
+# Strain Inclusion and Provenance Audit
+
+The strain audit tables below trace the current analysis panel from the source
+sequence table through cartography-overlap inclusion, sequence completeness
+checks, and unique pairwise distance comparisons. Source sequence rows absent
+from the stored cartography maps are reported as excluded from the current
+analysis rather than as missing sequence records.
+
+```{r}
+#| label: tbl-strain-flow-audit
+#| tbl-cap: |
+#|   Flow-style audit of source sequence rows, analysis-panel inclusion,
+#|   sequence completeness, and unique pairwise distance counts.
+
+here::here("results", "Tables", "strain-flow-audit-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-sequence-source-summary
+#| tbl-cap: |
+#|   Sequence source counts by subtype and analysis-inclusion status.
+
+here::here("results", "Tables", "sequence-source-summary-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-strain-provenance-accessions
+#| tbl-cap: |
+#|   Source database, accession, source and alignment full-length flags, and
+#|   inclusion status for each row in the source sequence table.
+
+here::here("results", "Tables", "strain-provenance-accession-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-strain-pair-counts
+#| tbl-cap: |
+#|   Unique off-diagonal pair counts by subtype and distance metric.
+
+here::here("results", "Tables", "strain-pair-count-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 # Tree Model Selection
 
 For ML tree construction, the pipeline compares FLU-family amino-acid

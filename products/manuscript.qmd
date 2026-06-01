@@ -82,7 +82,10 @@ as zero-distance substitutions. The source sequence table contains full-length
 flags and accession/source metadata; after alignment, the pipeline checks
 non-gap protein lengths against the subtype-specific full-length reference
 rather than relying on strain-name exceptions. We had 18 H1N1 strains and 21
-H3N2 strains in total. We then used both protein alignments to construct maximum
+H3N2 strains in total. A full inclusion and provenance audit, including source
+rows excluded because they were absent from the stored cartography maps,
+source/accession fields, sequence completeness checks, and pair counts, is
+reported in the supplement. We then used both protein alignments to construct maximum
 likelihood (ML) unrooted phylogenetic trees using the FLU amino acid
 substitution model [@dang2010]. For each subtype, we
 compared FLU-family models with and without invariant sites and discrete gamma
