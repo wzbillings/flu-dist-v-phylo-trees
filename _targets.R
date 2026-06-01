@@ -92,7 +92,12 @@ list(
 	tar_target(h3_cartography_map, read_cartography_map(h3_cartography_file)),
 	tar_target(
 		cartography_diagnostics_summary,
-		make_cartography_diagnostics_summary(h1_cartography_map, h3_cartography_map)
+		make_cartography_diagnostics_summary(
+			h1_cartography_map,
+			h3_cartography_map,
+			h1_cartography_file,
+			h3_cartography_file
+		)
 	),
 	tar_target(
 		h1_distances,

@@ -110,10 +110,15 @@ extract_cartography_diagnostics <- function(cartography_map, subtype, source_fil
 	)
 }
 
-make_cartography_diagnostics_summary <- function(h1_cartography_map, h3_cartography_map) {
+make_cartography_diagnostics_summary <- function(
+		h1_cartography_map,
+		h3_cartography_map,
+		h1_cartography_file,
+		h3_cartography_file
+	) {
 	dplyr::bind_rows(
-		extract_cartography_diagnostics(h1_cartography_map, "h1", "data/h1_post_all_2d.ace"),
-		extract_cartography_diagnostics(h3_cartography_map, "h3", "data/h3_post_all_2d.ace")
+		extract_cartography_diagnostics(h1_cartography_map, "h1", h1_cartography_file),
+		extract_cartography_diagnostics(h3_cartography_map, "h3", h3_cartography_file)
 	)
 }
 
