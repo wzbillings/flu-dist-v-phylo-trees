@@ -36,7 +36,7 @@ virus-name metadata CSV, or keep a strain-name exception for full-length status.
 
 **Impact:** The current analysis panel remains 18 H1N1 strains and 21 H3N2
 strains. Seven source sequence rows are excluded from the current analysis
-because they are not present in the stored cartography maps. `MI/85` is the
+because they are not present in the stored cartography maps. `MS/85` is the
 only source and analysis-panel sequence flagged as non-full-length in the new
 source table and alignment audit.
 

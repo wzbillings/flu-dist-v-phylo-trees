@@ -27,7 +27,7 @@ test_that("alignment_audit reports protein-only widths and non-full-length detai
 	alignment_result <- list(
 		subtype = "h3",
 		aligned_sequences = tibble::tibble(
-			short_name = c("MI/85", "HK/68"),
+			short_name = c("MS/85", "HK/68"),
 			pro_aligned = c("AA----", "AAAAAA"),
 			source_full_length = c(FALSE, TRUE)
 		)
@@ -47,5 +47,5 @@ test_that("alignment_audit reports protein-only widths and non-full-length detai
 	expect_equal(audit$protein_alignment_width, 6)
 	expect_equal(audit$source_non_full_length, 1)
 	expect_equal(audit$alignment_non_full_length, 1)
-	expect_match(audit$non_full_length_detail, "MI/85", fixed = TRUE)
+	expect_match(audit$non_full_length_detail, "MS/85", fixed = TRUE)
 })
