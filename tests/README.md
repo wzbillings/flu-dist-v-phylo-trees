@@ -16,7 +16,9 @@ The implemented tests cover fast deterministic behavior:
 - analysis settings for test and full pipeline modes;
 - distance-matrix tidying, ordering, validation, normalization helpers, and
   local Grantham amino-acid distance calculations;
-- toy-data behavior for sequence cleaning and sequence-cleaning audits;
+- toy-data behavior for protein-sequence cleaning, cartography-overlap
+  inclusion, and sequence-cleaning audits;
+- protein-only alignment summaries and alignment-derived full-length checks;
 - p-epitope site lookup and basic p-epitope distance-matrix structure;
 - lightweight manuscript/table helper functions that do not render plots, tables, or documents;
 - strain-level bootstrap helper behavior for distance-correlation intervals;
@@ -54,7 +56,13 @@ Assumptions:
 - `tests/run-tests.R`: runs each test block and writes a timestamped Markdown log to `tests/logs/`.
 - `tests/logs/.gitignore`: keeps generated Markdown test-run logs out of version control by default.
 - `tests/testthat/test-utils.R`: tests general validation, normalization, matrix reshaping, strain-name replacement, temporal distances, seeded perturbations, and analysis settings.
-- `tests/testthat/test-data-processing.R`: tests sequence cleaning, subtype splitting, duplicate metadata detection, and cleaning-audit summaries with inline toy data.
+- `tests/testthat/test-data-processing.R`: tests protein-only sequence
+  cleaning, subtype splitting, duplicate source-record detection,
+  cartography-overlap inclusion, and cleaning-audit summaries with inline toy
+  data.
+- `tests/testthat/test-alignment.R`: tests protein-only alignment audit
+  summaries and full-length checks computed from aligned non-gap protein
+  lengths.
 - `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, vector normalization, shared-strain alignment, unique off-diagonal pair extraction, and small deterministic Mantel permutation result structures.
 - `tests/testthat/test-grantham-distance.R`: tests canonical Grantham matrix values, per-comparable-site averaging, explicit gap/ambiguous residue exclusion, and named symmetric matrix output.
 - `tests/testthat/test-p-epitope-calculator.R`: tests p-epitope site lookup, invalid subtype handling, and basic p-epitope distance-matrix properties.
