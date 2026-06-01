@@ -75,6 +75,34 @@ here::here("results", "Tables", "tree-model-selection-table.rds") |>
 	fit_flextable_to_page()
 ```
 
+# Antigenic Cartography Input Diagnostics
+
+The cartographic distances in the main analysis are extracted from stored
+Racmacs `.ace` maps. These files are treated as first-pass cartography inputs
+rather than a full reproduction of the upstream map-building workflow. A
+separate manuscript is planned to describe construction of the human-serum
+antigenic cartographies in detail. Using the same HAI dataset to construct the
+maps and compare cartographic distances is a limitation of the current
+analysis, but no comparable alternative is currently available for this strain
+panel.
+
+The diagnostics below report map dimensionality, strain and serum counts,
+stored stress, stored projection count, and titer-table missingness where these
+metadata are extractable from the `.ace` files. Optimization history beyond the
+stored stress/projection metadata was not available in the stored `.ace` inputs.
+
+```{r}
+#| label: tbl-cartography-diagnostics
+#| tbl-cap: |
+#|   Diagnostics extracted from the stored antigenic-cartography .ace inputs.
+#|   Optimization history beyond stored stress and projection count was not
+#|   available in these files.
+
+here::here("results", "Tables", "cartography-diagnostics-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 # Distance-Matrix Comparison Details
 
 The primary manuscript table reports Mantel correlations between ML-tree

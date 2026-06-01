@@ -62,7 +62,13 @@ distance per comparable aligned site [@grantham1974], $p$-Epitope distance
 [@gupta2006], and the absolute difference in the year of isolation of strains
 [@auladell2022] from the sequences of all influenza viruses used for HAI assays,
 and used Racmacs to compute antigenic cartography distances from the HAI data
-[@wilks2023]. All of our analyses were conducted
+[@wilks2023]. The stored `.ace` maps were treated as first-pass cartography
+inputs; map dimensionality, strain and serum counts, stored stress, and titer
+missingness diagnostics are reported in the supplement. A separate manuscript
+is planned to describe construction of the human-serum antigenic cartographies.
+Using the same HAI dataset to build the maps and compare cartographic distances
+is a limitation, but no comparable alternative is currently available for this
+strain panel. All of our analyses were conducted
 separately for H1N1 and H3N2 strains.
 
 In order to compare with phylogenetic methods, we first computed a multiple

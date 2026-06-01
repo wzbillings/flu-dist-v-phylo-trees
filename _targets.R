@@ -91,6 +91,10 @@ list(
 	tar_target(h1_cartography_map, read_cartography_map(h1_cartography_file)),
 	tar_target(h3_cartography_map, read_cartography_map(h3_cartography_file)),
 	tar_target(
+		cartography_diagnostics_summary,
+		make_cartography_diagnostics_summary(h1_cartography_map, h3_cartography_map)
+	),
+	tar_target(
 		h1_distances,
 		calculate_subtype_distances(h1_alignment, h1_cartography_map, virus_metadata)
 	),
@@ -128,6 +132,14 @@ list(
 	tar_target(
 		distance_comparison_file,
 		write_rds_target(distance_comparisons, "results/derived/distance-comparisons.rds"),
+		format = "file"
+	),
+	tar_target(
+		cartography_diagnostics_summary_file,
+		write_rds_target(
+			cartography_diagnostics_summary,
+			"results/derived/cartography-diagnostics-summary.rds"
+		),
 		format = "file"
 	),
 	
@@ -439,6 +451,14 @@ list(
 		format = "file"
 	),
 	tar_target(
+		cartography_diagnostics_table_file,
+		write_cartography_diagnostics_table(
+			cartography_diagnostics_summary,
+			"results/Tables/cartography-diagnostics-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
 		ml_tree_support_summary,
 		make_ml_tree_support_summary(h1_ml_tree_support, h3_ml_tree_support)
 	),
@@ -513,6 +533,8 @@ list(
 			cophenetic_subtype_contrast_sensitivity_table_file,
 			cophenetic_correlation_table_file,
 			model_selection_table_file,
+			cartography_diagnostics_summary_file,
+			cartography_diagnostics_table_file,
 			tree_topology_distance_table_file,
 			ml_tree_support_summary_file,
 			ml_tree_support_table_file,
