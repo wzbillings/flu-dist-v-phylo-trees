@@ -44,10 +44,10 @@ make_strain_provenance_records <- function(
 				"included_in_analysis",
 				"excluded_from_analysis"
 			),
-			exclusion_reason = dplyr::case_when(
-				.data$in_analysis ~ NA_character_,
-				is.na(.data$analysis_name) ~ "absent_from_cartography_maps",
-				TRUE ~ "excluded_unspecified"
+			exclusion_reason = dplyr::if_else(
+				.data$in_analysis,
+				NA_character_,
+				"absent_from_cartography_maps"
 			),
 			source_status = dplyr::if_else(
 				is_missing_text(.data$protein_sequence_source),
