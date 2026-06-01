@@ -34,8 +34,10 @@ have been recorded in `docs/analysis-decision-log.md`.
 - [x] Ethics posture for current local work: the author reports that repository
   data contain no human participant data or identifying metadata and that the
   institutional IRB designated the data as exempt nonhuman-subjects data.
-- [x] Raw data boundaries: `data/full-sequences.xlsx` and
-  `data/UGAFluVac-virus-names.csv` are raw source files and must not be edited.
+- [x] Raw data boundaries: `data/UGAFluVac-sequences.csv` is the current raw
+  source sequence file and must not be edited in place. The retired
+  `data/full-sequences.xlsx` and `data/UGAFluVac-virus-names.csv` files are no
+  longer pipeline inputs.
 - [x] Derived output boundaries: other files in `data/`, all files in `results/`,
   and `.docx`/`.pdf` files in `products/` should be treated as derived outputs
   that need to be reproducible.
@@ -69,6 +71,8 @@ have been recorded in `docs/analysis-decision-log.md`.
   IRB details can be placeholders for now while work proceeds.
 - [x] Cartography boundary for first pipeline pass: treat existing `.ace` files
   as inputs; integrate cartography-generation code later.
+- [x] Current analysis-set boundary: restrict sequence-based analyses to strains
+  present in the pre-created H1N1/H3N2 cartography maps.
 
 ### Still Requires Human Confirmation
 

@@ -51,6 +51,14 @@ correlation table in the main manuscript is generated from
 `results/derived/cophenetic-mantel-summary.rds`, and rendered as
 `results/Tables/distance-mantel-table.rds`.
 
+The raw sequence input is `data/UGAFluVac-sequences.csv`, a protein-sequence
+source table with strain names, short names, source databases, accession
+numbers, source full-length flags, and hemagglutinin protein sequences. The
+pipeline restricts analysis inclusion to H1N1 and H3N2 sequence rows that can
+be matched to antigens in the stored cartography maps. Sequence records outside
+those stored maps are retained in the source table for provenance but are not
+used in the distance comparisons in this manuscript.
+
 # Tree Model Selection
 
 For ML tree construction, the pipeline compares FLU-family amino-acid

@@ -4,6 +4,42 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-01 - Protein Sequence Source Table and Cartography-Overlap Inclusion
+
+**Decision:** Replace the prior sequence workbook plus virus-name metadata CSV
+inputs with `data/UGAFluVac-sequences.csv`, a protein-sequence source table
+containing strain names, short names, sequence source databases, accession
+numbers, source full-length flags, and hemagglutinin protein sequences. Keep the
+analysis set restricted to strains present in the stored H1N1 and H3N2
+cartography maps. Sequence records not present in the stored maps should be
+retained in the source table for provenance but excluded from the current
+distance-metric analysis. Remove nucleotide-sequence requirements from the
+pipeline because nucleotide sequences are not used in the current distance,
+tree, or manuscript outputs. Replace the previous hard-coded full-length rule
+with source full-length flags plus post-alignment non-gap protein-length
+checks.
+
+**Rationale:** Cartographic distance comparison is a central contribution of
+the manuscript, and the available first-pass cartography maps define the strain
+panel that can support that comparison. The updated sequence table supplies
+accession/source provenance in a simpler auditable format and avoids carrying
+unused nucleotide fields. Full-length status should be auditable from the
+sequence data and alignment rather than inferred from a hard-coded strain name.
+
+**Evidence / citation:** Human instruction in chat on 2026-06-01; implementation
+in `R/data-processing.R`, `R/alignment.R`, `_targets.R`,
+`products/manuscript.qmd`, and `products/supplement.qmd`.
+
+**Alternatives considered:** Expand the analysis panel to every sequence row in
+the new source table, keep requiring nucleotide sequences, preserve the deleted
+virus-name metadata CSV, or keep a strain-name exception for full-length status.
+
+**Impact:** The current analysis panel remains 18 H1N1 strains and 21 H3N2
+strains. Seven source sequence rows are excluded from the current analysis
+because they are not present in the stored cartography maps. `MI/85` is the
+only source and analysis-panel sequence flagged as non-full-length in the new
+source table and alignment audit.
+
 ## 2026-06-01 - Antigenic Cartography Input Diagnostics
 
 **Decision:** Extract and report antigenic-cartography diagnostics from the

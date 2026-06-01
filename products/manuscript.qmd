@@ -60,26 +60,31 @@ FluZone (Sanofi Pasteur) vaccine, and gave pre-vaccination and post-vaccination
 a panel of historical viruses. We computed the mean Grantham amino-acid
 distance per comparable aligned site [@grantham1974], $p$-Epitope distance
 [@gupta2006], and the absolute difference in the year of isolation of strains
-[@auladell2022] from the sequences of all influenza viruses used for HAI assays,
-and used Racmacs to compute antigenic cartography distances from the HAI data
-[@wilks2023]. The stored `.ace` maps were treated as first-pass cartography
-inputs; map dimensionality, strain and serum counts, stored stress, and titer
-missingness diagnostics are reported in the supplement. A separate manuscript
-is planned to describe construction of the human-serum antigenic cartographies.
-Using the same HAI dataset to build the maps and compare cartographic distances
-is a limitation, but no comparable alternative is currently available for this
-strain panel. All of our analyses were conducted
-separately for H1N1 and H3N2 strains.
+[@auladell2022] from hemagglutinin protein sequences. We restricted the
+analysis panel to strains present in the stored H1N1 or H3N2 antigenic
+cartography maps, because comparison with cartographic distance is a central
+analysis objective. We used Racmacs to compute antigenic cartography distances
+from the HAI data [@wilks2023]. The stored `.ace` maps were treated as
+first-pass cartography inputs; map dimensionality, strain and serum counts,
+stored stress, and titer missingness diagnostics are reported in the
+supplement. A separate manuscript is planned to describe construction of the
+human-serum antigenic cartographies. Using the same HAI dataset to build the
+maps and compare cartographic distances is a limitation, but no comparable
+alternative is currently available for this strain panel. All of our analyses
+were conducted separately for H1N1 and H3N2 strains.
 
 In order to compare with phylogenetic methods, we first computed a multiple
 sequence alignment (MSA) using the MUSCLE algorithm [@edgar2004]. The Grantham
 and $p$-Epitope distances were computed based on this MSA. For Grantham
 distance, aligned positions containing gaps, ambiguous residues, or non-standard
 amino acids were excluded from the pair-specific denominator rather than treated
-as zero-distance substitutions. We had 18
-H1N1 strains and 21 H3N2 strains in total. We then used
-both alignments to construct maximum likelihood (ML) unrooted phylogenetic trees
-using the FLU amino acid substitution model [@dang2010]. For each subtype, we
+as zero-distance substitutions. The source sequence table contains full-length
+flags and accession/source metadata; after alignment, the pipeline checks
+non-gap protein lengths against the subtype-specific full-length reference
+rather than relying on strain-name exceptions. We had 18 H1N1 strains and 21
+H3N2 strains in total. We then used both protein alignments to construct maximum
+likelihood (ML) unrooted phylogenetic trees using the FLU amino acid
+substitution model [@dang2010]. For each subtype, we
 compared FLU-family models with and without invariant sites and discrete gamma
 rate variation, evaluating gamma category counts from 4 to 32 in increments of
 4 for the full analysis. Models were compared with AICc

@@ -12,26 +12,29 @@ list(
 	tar_target(analysis_settings, make_analysis_settings(analysis_mode)),
 	
 	# Raw/source and first-pass cartography inputs.
-	tar_target(sequence_source_file, "data/full-sequences.xlsx", format = "file"),
-	tar_target(virus_name_file, "data/UGAFluVac-virus-names.csv", format = "file"),
+	tar_target(sequence_source_file, "data/UGAFluVac-sequences.csv", format = "file"),
 	tar_target(h1_cartography_file, "data/h1_post_all_2d.ace", format = "file"),
 	tar_target(h3_cartography_file, "data/h3_post_all_2d.ace", format = "file"),
 	tar_target(
 		source_input_audit,
 		validate_source_inputs(
 			sequence_source_file,
-			virus_name_file,
 			c(h1 = h1_cartography_file, h3 = h3_cartography_file)
 		)
 	),
+	tar_target(h1_cartography_map, read_cartography_map(h1_cartography_file)),
+	tar_target(h3_cartography_map, read_cartography_map(h3_cartography_file)),
+	tar_target(
+		cartography_antigen_names,
+		extract_cartography_antigen_names(h1_cartography_map, h3_cartography_map)
+	),
 	
-	# Virus metadata and sequence cleaning.
-	tar_target(virus_metadata, load_virus_metadata(virus_name_file)),
+	# Sequence cleaning and cartography-overlap inclusion.
 	tar_target(raw_sequences, load_raw_sequences(sequence_source_file)),
-	tar_target(clean_sequences, clean_sequence_data(raw_sequences, virus_metadata)),
+	tar_target(clean_sequences, clean_sequence_data(raw_sequences, cartography_antigen_names)),
 	tar_target(
 		sequence_cleaning_summary,
-		sequence_cleaning_audit(raw_sequences, virus_metadata, clean_sequences)
+		sequence_cleaning_audit(raw_sequences, cartography_antigen_names, clean_sequences)
 	),
 	tar_target(
 		clean_sequence_file,
@@ -52,11 +55,6 @@ list(
 		dplyr::bind_rows(alignment_audit(h1_alignment), alignment_audit(h3_alignment))
 	),
 	tar_target(
-		h1_rna_alignment_file,
-		write_rds_target(h1_alignment$nucleotide_msa, "results/derived/h1-rna-alignment.rds"),
-		format = "file"
-	),
-	tar_target(
 		h1_protein_alignment_file,
 		write_rds_target(h1_alignment$protein_msa, "results/derived/h1-pro-alignment.rds"),
 		format = "file"
@@ -64,11 +62,6 @@ list(
 	tar_target(
 		h1_aligned_sequences_file,
 		write_rds_target(h1_alignment$aligned_sequences, "results/derived/h1-seqs-aligned.rds"),
-		format = "file"
-	),
-	tar_target(
-		h3_rna_alignment_file,
-		write_rds_target(h3_alignment$nucleotide_msa, "results/derived/h3-rna-alignment.rds"),
 		format = "file"
 	),
 	tar_target(
@@ -88,8 +81,6 @@ list(
 	),
 	
 	# Sequence and cartography distance calculations.
-	tar_target(h1_cartography_map, read_cartography_map(h1_cartography_file)),
-	tar_target(h3_cartography_map, read_cartography_map(h3_cartography_file)),
 	tar_target(
 		cartography_diagnostics_summary,
 		make_cartography_diagnostics_summary(
@@ -101,11 +92,11 @@ list(
 	),
 	tar_target(
 		h1_distances,
-		calculate_subtype_distances(h1_alignment, h1_cartography_map, virus_metadata)
+		calculate_subtype_distances(h1_alignment, h1_cartography_map, clean_sequences)
 	),
 	tar_target(
 		h3_distances,
-		calculate_subtype_distances(h3_alignment, h3_cartography_map, virus_metadata)
+		calculate_subtype_distances(h3_alignment, h3_cartography_map, clean_sequences)
 	),
 	tar_target(distances_by_subtype, list(h1 = h1_distances, h3 = h3_distances)),
 	tar_target(distance_table, combine_distance_tables(distances_by_subtype, unique_pairs = TRUE)),

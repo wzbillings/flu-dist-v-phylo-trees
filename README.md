@@ -56,8 +56,9 @@ W. Zane Billings.
 - `R/`: reusable analysis functions for data cleaning, alignment, distance
   calculation, tree fitting, plots, tables, and manuscript rendering.
 - `data/`: source inputs and legacy derived files. Treat
-  `data/full-sequences.xlsx` and `data/UGAFluVac-virus-names.csv` as immutable
-  raw/source inputs.
+  `data/UGAFluVac-sequences.csv` as the immutable raw/source sequence table.
+  The analysis uses the H1N1 and H3N2 sequence records that overlap the stored
+  cartography map antigens.
 - `results/`: generated analysis outputs, including derived RDS files,
   manuscript-ready tables, and figures.
 - `products/`: Quarto manuscript and supplement sources, bibliography files,
