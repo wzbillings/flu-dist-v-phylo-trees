@@ -237,6 +237,46 @@ here::here("results", "Tables", "tree-topology-distance-table.rds") |>
 	fit_flextable_to_page()
 ```
 
+# ML Tree Branch Support and Bootstrap Stability
+
+To evaluate robustness of the optimized ML tree topologies themselves, the
+pipeline performs nonparametric site-bootstrap resampling of the fitted ML
+object for each subtype. Test mode uses reduced bootstrap settings for pipeline
+checks, while full mode should be regenerated before interpreting these values
+as publication evidence. The summary below reports branch-support and companion
+topology-stability diagnostics. Branch support is the percentage of bootstrap
+trees that recover each internal split in the optimized ML tree. The topology
+stability summaries compare each bootstrap replicate tree with the optimized ML
+tree using RF-style and related tree-distance metrics.
+
+```{r}
+#| label: tbl-ml-tree-support
+#| tbl-cap: |
+#|   ML-tree branch support and bootstrap topology-stability summary. Test-mode
+#|   values use reduced bootstrap replicates and should not be interpreted as
+#|   final publication-scale robustness evidence.
+
+here::here("results", "Tables", "ml-tree-support-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+The node-level support table is included for auditability. Internal node
+numbers refer to the unrooted ML tree object rather than named biological
+clades; final clade-level interpretation should use the plotted tree and
+full-mode support results together.
+
+```{r}
+#| label: tbl-ml-branch-support-detail
+#| tbl-cap: |
+#|   Internal-node bootstrap support values for the optimized ML trees. Node
+#|   identifiers refer to the underlying unrooted tree object.
+
+here::here("results", "Tables", "ml-tree-branch-support-detail-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 # References
 
 ::: {#refs}

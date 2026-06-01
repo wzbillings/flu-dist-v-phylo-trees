@@ -336,3 +336,80 @@ test_that("model selection falls back to subtype-specific models when common los
 	expect_equal(choice$selected_models[["h1"]], "FLU+G(4)")
 	expect_equal(choice$selected_models[["h3"]], "FLU+G(4)+I")
 })
+
+make_toy_support_result <- function(subtype) {
+	list(
+		branch_support_summary = tibble::tibble(
+			subtype = subtype,
+			bootstrap_replicates = 10L,
+			internal_branches = 3L,
+			mean_support_percent = 82,
+			median_support_percent = 80,
+			min_support_percent = 60,
+			branches_ge_70_percent = 2L,
+			branches_ge_90_percent = 1L,
+			branches_ge_95_percent = 0L
+		),
+		topology_stability_summary = tibble::tibble(
+			subtype = subtype,
+			bootstrap_replicates = 10L,
+			usable_topology_replicates = 10L,
+			distance_failures = 0L,
+			identical_topology_fraction = 0.3,
+			median_normalized_rf_distance = 0.2,
+			mean_normalized_rf_distance = 0.25,
+			max_normalized_rf_distance = 0.6,
+			median_weighted_rf_distance = 0.4,
+			median_branch_score_distance = 0.5,
+			median_path_distance = 2
+		),
+		branch_support_detail = tibble::tibble(
+			subtype = subtype,
+			node = c(6L, 7L, 8L),
+			bootstrap_replicates = 10L,
+			support_percent = c(100, 80, 60),
+			support_category = c(">=95%", "70-89%", "<70%")
+		)
+	)
+}
+
+test_that("ML support tables combine branch support and topology stability", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+	skip_if_not_installed("flextable")
+
+	h1 <- make_toy_support_result("h1")
+	h3 <- make_toy_support_result("h3")
+
+	summary <- make_ml_tree_support_summary(h1, h3)
+	detail <- make_ml_branch_support_detail(h1, h3)
+
+	expect_equal(nrow(summary), 2)
+	expect_equal(
+		names(summary),
+		c(
+			"Subtype",
+			"Bootstrap replicates",
+			"Internal branches",
+			"Mean branch support (%)",
+			"Median branch support (%)",
+			"Minimum branch support (%)",
+			"Branches >=70%",
+			"Branches >=90%",
+			"Branches >=95%",
+			"Usable topology replicates",
+			"Topology distance failures",
+			"Identical topology fraction",
+			"Median normalized RF distance",
+			"Mean normalized RF distance",
+			"Maximum normalized RF distance",
+			"Median weighted RF distance",
+			"Median branch-score distance",
+			"Median path distance"
+		)
+	)
+	expect_equal(nrow(detail), 6)
+	expect_equal(unique(detail$Subtype), c("H1N1", "H3N2"))
+	expect_s3_class(make_ml_tree_support_table(summary), "flextable")
+	expect_s3_class(make_ml_branch_support_detail_table(detail), "flextable")
+})

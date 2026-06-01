@@ -97,9 +97,10 @@ targets::tar_make()
 ```
 
 By default, the pipeline uses `FLU_TARGETS_MODE=test`, which keeps stochastic
-and expensive steps small enough for routine development checks. Publication
-scale settings are selected by setting `FLU_TARGETS_MODE=full` before running
-the pipeline:
+and expensive steps small enough for routine development checks, including
+reduced Mantel, SH-test, subtype-contrast, and ML-tree support bootstrap
+settings. Publication-scale settings are selected by setting
+`FLU_TARGETS_MODE=full` before running the pipeline:
 
 ```r
 Sys.setenv(FLU_TARGETS_MODE = "full")

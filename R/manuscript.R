@@ -76,6 +76,9 @@ render_quarto_supplement <- function(
 		pearson_correlation_table_file,
 		model_selection_table_file,
 		tree_topology_distance_table_file,
+		ml_tree_support_summary_file,
+		ml_tree_support_table_file,
+		ml_branch_support_detail_table_file,
 		bibliography_file,
 		csl_file,
 		output_file = "products/supplement.docx"
@@ -90,6 +93,9 @@ render_quarto_supplement <- function(
 	validate_file_exists(pearson_correlation_table_file, "descriptive Pearson distance correlation table")
 	validate_file_exists(model_selection_table_file, "tree model-selection table")
 	validate_file_exists(tree_topology_distance_table_file, "tree topology-distance table")
+	validate_file_exists(ml_tree_support_summary_file, "ML tree support summary")
+	validate_file_exists(ml_tree_support_table_file, "ML tree support table")
+	validate_file_exists(ml_branch_support_detail_table_file, "ML branch-support detail table")
 	validate_file_exists(bibliography_file, "bibliography")
 	validate_file_exists(csl_file, "CSL file")
 

@@ -881,6 +881,106 @@ write_topology_distance_table <- function(h1_tree_analysis, h3_tree_analysis, pa
 	write_rds_target(table, path)
 }
 
+make_ml_tree_support_summary_one <- function(tree_support) {
+	branch <- tree_support$branch_support_summary
+	topology <- tree_support$topology_stability_summary |>
+		dplyr::select(-dplyr::all_of("bootstrap_replicates"))
+	
+	dplyr::left_join(branch, topology, by = "subtype") |>
+		dplyr::transmute(
+			Subtype = subtype_display_label(.data$subtype),
+			`Bootstrap replicates` = .data$bootstrap_replicates,
+			`Internal branches` = .data$internal_branches,
+			`Mean branch support (%)` = .data$mean_support_percent,
+			`Median branch support (%)` = .data$median_support_percent,
+			`Minimum branch support (%)` = .data$min_support_percent,
+			`Branches >=70%` = .data$branches_ge_70_percent,
+			`Branches >=90%` = .data$branches_ge_90_percent,
+			`Branches >=95%` = .data$branches_ge_95_percent,
+			`Usable topology replicates` = .data$usable_topology_replicates,
+			`Topology distance failures` = .data$distance_failures,
+			`Identical topology fraction` = .data$identical_topology_fraction,
+			`Median normalized RF distance` = .data$median_normalized_rf_distance,
+			`Mean normalized RF distance` = .data$mean_normalized_rf_distance,
+			`Maximum normalized RF distance` = .data$max_normalized_rf_distance,
+			`Median weighted RF distance` = .data$median_weighted_rf_distance,
+			`Median branch-score distance` = .data$median_branch_score_distance,
+			`Median path distance` = .data$median_path_distance
+		)
+}
+
+make_ml_tree_support_summary <- function(h1_ml_tree_support, h3_ml_tree_support) {
+	dplyr::bind_rows(
+		make_ml_tree_support_summary_one(h1_ml_tree_support),
+		make_ml_tree_support_summary_one(h3_ml_tree_support)
+	)
+}
+
+make_ml_tree_support_table <- function(ml_tree_support_summary) {
+	ml_tree_support_summary |>
+		dplyr::mutate(
+			`Mean branch support (%)` = sprintf("%.1f", .data$`Mean branch support (%)`),
+			`Median branch support (%)` = sprintf("%.1f", .data$`Median branch support (%)`),
+			`Minimum branch support (%)` = sprintf("%.1f", .data$`Minimum branch support (%)`),
+			`Identical topology fraction` = sprintf("%.2f", .data$`Identical topology fraction`),
+			`Median normalized RF distance` = sprintf("%.2f", .data$`Median normalized RF distance`),
+			`Mean normalized RF distance` = sprintf("%.2f", .data$`Mean normalized RF distance`),
+			`Maximum normalized RF distance` = sprintf("%.2f", .data$`Maximum normalized RF distance`),
+			`Median weighted RF distance` = sprintf("%.2f", .data$`Median weighted RF distance`),
+			`Median branch-score distance` = sprintf("%.2f", .data$`Median branch-score distance`),
+			`Median path distance` = sprintf("%.2f", .data$`Median path distance`)
+		) |>
+		flextable::flextable() |>
+		flextable::autofit() |>
+		flextable::set_caption(paste0(
+			"Maximum-likelihood tree branch support and bootstrap topology ",
+			"stability. Branch support is the percentage of bootstrap trees ",
+			"recovering each ML-tree internal split; topology-stability metrics ",
+			"compare each bootstrap replicate tree against the optimized ML tree."
+		))
+}
+
+write_ml_tree_support_table <- function(h1_ml_tree_support, h3_ml_tree_support, path) {
+	table <- make_ml_tree_support_summary(h1_ml_tree_support, h3_ml_tree_support) |>
+		make_ml_tree_support_table()
+	write_rds_target(table, path)
+}
+
+make_ml_branch_support_detail <- function(h1_ml_tree_support, h3_ml_tree_support) {
+	dplyr::bind_rows(
+		h1_ml_tree_support$branch_support_detail,
+		h3_ml_tree_support$branch_support_detail
+	) |>
+		dplyr::transmute(
+			Subtype = subtype_display_label(.data$subtype),
+			`Internal node` = .data$node,
+			`Bootstrap replicates` = .data$bootstrap_replicates,
+			`Branch support (%)` = .data$support_percent,
+			`Support category` = .data$support_category
+		)
+}
+
+make_ml_branch_support_detail_table <- function(ml_branch_support_detail) {
+	ml_branch_support_detail |>
+		dplyr::mutate(`Branch support (%)` = sprintf("%.1f", .data$`Branch support (%)`)) |>
+		flextable::flextable() |>
+		flextable::merge_v(j = "Subtype") |>
+		flextable::valign(j = "Subtype", valign = "top") |>
+		flextable::fix_border_issues() |>
+		flextable::autofit() |>
+		flextable::set_caption(paste0(
+			"Internal-node bootstrap support for the optimized maximum-likelihood ",
+			"trees. Node numbers refer to the unrooted ML tree object and are ",
+			"included for auditability rather than biological naming."
+		))
+}
+
+write_ml_branch_support_detail_table <- function(h1_ml_tree_support, h3_ml_tree_support, path) {
+	table <- make_ml_branch_support_detail(h1_ml_tree_support, h3_ml_tree_support) |>
+		make_ml_branch_support_detail_table()
+	write_rds_target(table, path)
+}
+
 make_model_selection_summary <- function(model_tests_by_subtype, model_choice) {
 	purrr::imap_dfr(
 		model_tests_by_subtype,

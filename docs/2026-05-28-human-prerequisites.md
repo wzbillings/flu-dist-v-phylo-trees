@@ -76,8 +76,10 @@ have been recorded in `docs/analysis-decision-log.md`.
 - [ ] IRB details for the study ethics subsection.
 - [ ] Coauthor/contributor table and approval timing.
 - [ ] Final sensitivity-analysis requirements.
-- [ ] Branch support, model-selection, alignment, cartography, and missing-data
-  checks required before submission.
+- [x] Branch-support/topology-stability direction for the current ML tree
+  robustness pass.
+- [ ] Final model-selection, alignment, cartography, missing-data, and
+  submission-readiness sensitivity checks.
 - [ ] Final public-release plan for a curated repository that does not expose
   internal or unneeded files through commit history.
 - [ ] Venue-specific policy and fit verification before submission or preprint.
@@ -127,7 +129,8 @@ treated as required until the human approves, revises, or rejects them.
   fitted models.
 - [ ] Retain SH-test and RF-distance summaries as secondary topology-comparison
   checks if still methodologically appropriate.
-- [ ] Add branch-support or topology-stability checks if feasible in full mode.
+- [x] Add branch-support and topology-stability checks with reduced test-mode
+  and publication-scale full-mode bootstrap settings.
 
 #### Alignment and Sequence Handling
 
