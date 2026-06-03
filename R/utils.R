@@ -268,6 +268,7 @@ make_analysis_settings <- function(mode = Sys.getenv("FLU_TARGETS_MODE", "test")
 		subtype_contrast_bootstrap_reps = if (is_test) 199L else 4000L,
 		correlation_bootstrap_reps = if (is_test) 1000L else 4000L,
 		correlation_ci_level = 0.95,
+		influence_threshold = 0.10,
 		pepi_perturbation_magnitude = 0.01,
 		pepi_perturbation_seed = 370L,
 		jitter_seed = 132413L

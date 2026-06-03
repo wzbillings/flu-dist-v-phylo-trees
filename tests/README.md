@@ -26,6 +26,8 @@ The implemented tests cover fast deterministic behavior:
 - strain-level bootstrap helper behavior for distance-correlation intervals;
 - Mantel matrix-comparison summaries that exclude diagonal and duplicate
   distance-matrix entries;
+- leave-one-strain-out influence summaries, flags, and supplement-ready
+  display helpers for matrix-association sensitivity analysis;
 - antigenic-cartography diagnostics extracted from stored `.ace` map inputs,
   including map dimensions, strain/serum counts, stress metadata, and titer
   missingness summaries;
@@ -79,6 +81,9 @@ Assumptions:
   topology-stability helper behavior with toy `phylo` and `multiPhylo` objects,
   avoiding expensive real-alignment bootstrap runs.
 - `tests/testthat/test-subtype-contrast.R`: tests toy-matrix subtype contrast estimates, Bayesian-bootstrap contrast interval structure, Fisher-z and permutation sensitivity summaries, and manuscript-ready subtype contrast table/plot constructors.
+- `tests/testthat/test-influence-analysis.R`: tests toy-matrix
+  leave-one-strain-out influence estimates, influence flag validation, and
+  supplement-ready influence table/plot constructors.
 
 ## How to run the tests
 

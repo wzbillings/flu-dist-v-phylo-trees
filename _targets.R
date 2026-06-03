@@ -436,6 +436,34 @@ list(
 		format = "file"
 	),
 	tar_target(
+		cophenetic_influence_summary,
+		calculate_cophenetic_influence_summary(distances_with_tree_by_subtype, analysis_settings)
+	),
+	tar_target(
+		cophenetic_influence_summary_file,
+		write_rds_target(
+			cophenetic_influence_summary,
+			"results/derived/cophenetic-influence-summary.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_influence_table_file,
+		write_cophenetic_influence_table(
+			cophenetic_influence_summary,
+			"results/Tables/leave-one-strain-out-influence-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_influence_plot_file,
+		write_cophenetic_influence_plot(
+			cophenetic_influence_summary,
+			"results/Figures/leave-one-strain-out-influence-plot.png"
+		),
+		format = "file"
+	),
+	tar_target(
 		h1_ml_tree_plot_file,
 		write_ml_tree_plot(h1_tree_analysis, "results/Figures/h1-ml-tree.png", "H1N1"),
 		format = "file"
@@ -595,6 +623,9 @@ list(
 			cophenetic_subtype_contrast_sensitivity_file,
 			cophenetic_subtype_contrast_sensitivity_table_file,
 			cophenetic_correlation_table_file,
+			cophenetic_influence_summary_file,
+			cophenetic_influence_table_file,
+			cophenetic_influence_plot_file,
 			model_selection_table_file,
 			strain_flow_table_file,
 			strain_accession_table_file,

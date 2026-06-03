@@ -74,6 +74,9 @@ render_quarto_supplement <- function(
 		subtype_contrast_sensitivity_file,
 		subtype_contrast_sensitivity_table_file,
 		pearson_correlation_table_file,
+		influence_summary_file,
+		influence_table_file,
+		influence_plot_file,
 		model_selection_table_file,
 		strain_flow_table_file,
 		strain_accession_table_file,
@@ -97,6 +100,9 @@ render_quarto_supplement <- function(
 	validate_file_exists(subtype_contrast_sensitivity_file, "subtype contrast sensitivity summary")
 	validate_file_exists(subtype_contrast_sensitivity_table_file, "subtype contrast sensitivity table")
 	validate_file_exists(pearson_correlation_table_file, "descriptive Pearson distance correlation table")
+	validate_file_exists(influence_summary_file, "leave-one-strain-out influence summary")
+	validate_file_exists(influence_table_file, "leave-one-strain-out influence table")
+	validate_file_exists(influence_plot_file, "leave-one-strain-out influence plot")
 	validate_file_exists(model_selection_table_file, "tree model-selection table")
 	validate_file_exists(strain_flow_table_file, "strain flow audit table")
 	validate_file_exists(strain_accession_table_file, "strain provenance accession table")

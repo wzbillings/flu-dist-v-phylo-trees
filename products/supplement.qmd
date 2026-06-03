@@ -302,6 +302,63 @@ here::here("results", "Tables", "descriptive-pearson-distance-correlation-table.
 	fit_flextable_to_page()
 ```
 
+# Leave-One-Strain-Out Influence Analysis
+
+We evaluated strain-level influence on the matrix-association results by
+removing one strain at a time within subtype from the existing ML-tree
+cophenetic and candidate distance matrices, then recomputing the observed
+association estimates on the remaining unique off-diagonal strain pairs. This
+analysis does not refit the multiple sequence alignments, ML trees, or
+cartography maps; it asks whether the reported matrix associations are driven
+by individual strains in the current fitted analysis objects.
+
+Rows are flagged when the absolute leave-one-out change is at least 0.10
+correlation units. The derived summary retains both the Mantel-r point estimate
+and the descriptive Pearson point estimate. For the within-subtype
+leave-one-out comparisons shown here, both point estimates use the same
+unique-pair vectors, so the displayed table and figure focus on Mantel r.
+
+```{r}
+#| label: tbl-influence-settings
+#| tbl-cap: |
+#|   Leave-one-strain-out influence-analysis settings. The summary retains
+#|   both Mantel-r and descriptive Pearson point-estimate rows; the table and
+#|   figure below focus on Mantel r.
+
+here::here("results", "derived", "cophenetic-influence-summary.rds") |>
+	readr::read_rds() |>
+	dplyr::select(
+		"Estimate method",
+		"Flag threshold"
+	) |>
+	dplyr::distinct() |>
+	flextable::flextable() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: fig-influence
+#| fig-cap: |
+#|   Largest leave-one-strain-out changes in Mantel correlation after removing
+#|   strains within subtype. Positive values indicate that the estimate
+#|   increased after removing the strain; negative values indicate that it
+#|   decreased. The complete row-level listing is shown in the influence table.
+
+knitr::include_graphics(here::here("results", "Figures", "leave-one-strain-out-influence-plot.png"))
+```
+
+```{r}
+#| label: tbl-influence
+#| tbl-cap: |
+#|   Leave-one-strain-out influence on Mantel correlations between each
+#|   candidate distance metric and ML-tree cophenetic distance. Changes are
+#|   leave-one-out estimates minus full-panel estimates.
+
+here::here("results", "Tables", "leave-one-strain-out-influence-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 # Supplemental Tree Topology Checks
 
 The main manuscript reports delta log likelihood as the primary tree-comparison
