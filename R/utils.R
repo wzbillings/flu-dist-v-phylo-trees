@@ -53,6 +53,45 @@ validate_unique_values <- function(x, label) {
 	invisible(x)
 }
 
+standard_amino_acid_codes <- function() {
+	c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y")
+}
+
+gap_amino_acid_codes <- function() {
+	c("-")
+}
+
+ambiguous_amino_acid_codes <- function() {
+	c("B", "J", "X", "Z", "?")
+}
+
+known_nonstandard_amino_acid_codes <- function() {
+	c("O", "U")
+}
+
+split_sequence_characters <- function(seq) {
+	strsplit(seq, "", fixed = FALSE, useBytes = TRUE)[[1]]
+}
+
+normalize_amino_acid_code <- function(x) {
+	toupper(as.character(x))
+}
+
+is_standard_amino_acid <- function(x) {
+	normalize_amino_acid_code(x) %in% standard_amino_acid_codes()
+}
+
+classify_amino_acid_code <- function(x) {
+	code <- normalize_amino_acid_code(x)
+	dplyr::case_when(
+		code %in% standard_amino_acid_codes() ~ "standard_residue",
+		code %in% gap_amino_acid_codes() ~ "gap",
+		code %in% ambiguous_amino_acid_codes() ~ "ambiguous_or_missing",
+		code %in% known_nonstandard_amino_acid_codes() ~ "known_nonstandard_residue",
+		TRUE ~ "unexpected"
+	)
+}
+
 # Convert an MSA object to a named character vector.
 alignment_to_character <- function(msa_alignment) {
 	as.character(msa_alignment@unmasked)

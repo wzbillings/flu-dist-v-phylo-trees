@@ -31,3 +31,18 @@ test_that("Grantham distance matrices are symmetric and preserve strain names", 
 	expect_equal(distances["one", "two"], 32)
 	expect_equal(distances["one", "three"], 64)
 })
+
+test_that("complete-deletion Grantham distances remove non-comparable sites across all sequences", {
+	seqs <- c(
+		one = "AAAA",
+		two = "AVXA",
+		three = "AV-A"
+	)
+
+	distances <- dist_grantham(seqs, deletion = "complete")
+
+	expect_equal(distances["one", "two"], 64 / 3)
+	expect_equal(distances["one", "three"], 64 / 3)
+	expect_equal(distances["two", "three"], 0)
+	expect_equal(distances, t(distances))
+})

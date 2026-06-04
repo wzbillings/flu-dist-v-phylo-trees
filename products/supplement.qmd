@@ -109,6 +109,73 @@ here::here("results", "Tables", "strain-pair-count-table.rds") |>
 	fit_flextable_to_page()
 ```
 
+# Sequence Completeness and Missing-Data Sensitivity
+
+For sequence-derived distances, the primary analysis uses pairwise deletion of
+non-comparable aligned positions. In each strain pair, standard amino-acid
+residues are comparable; alignment gaps, ambiguous or missing residue codes,
+and known nonstandard amino-acid codes are excluded from the relevant
+denominator rather than counted as zero-distance substitutions. This matches
+the pairwise-deletion behavior commonly used for sequence distances when gaps
+or missing states are sparse. As a cheap sensitivity check, we also computed
+complete-deletion sequence distances, where sites containing any
+non-comparable character in any included strain within subtype are removed
+before pairwise distances are calculated.
+
+The complete-sequence sensitivity below removes included strains that are not
+full-length by source or alignment audit from the existing distance matrices.
+This matrix-subsetting check does not refit the multiple sequence alignment,
+maximum-likelihood trees, distance-based trees, or cartography maps. If only
+one included strain is non-full-length, the subtype-specific matrix result is
+equivalent to the corresponding leave-one-strain-out matrix-removal result, but
+the target is reported separately to make the complete-sequence audit explicit.
+
+More complex alternatives, including complete-sequence-only alignment and ML
+tree refitting or treating gaps as a separate phylogenetic state, are deferred
+unless requested because they answer broader questions and can be substantially
+more computationally expensive.
+
+For the matrix-association summaries below, rows are flagged when the absolute
+association change is at least 0.10 correlation units, matching the
+leave-one-strain-out influence convention.
+
+```{r}
+#| label: tbl-sequence-character-audit
+#| tbl-cap: |
+#|   Aligned sequence character audit by residue class. Unexpected characters
+#|   should be reviewed against source data before publication-scale
+#|   interpretation.
+
+here::here("results", "Tables", "sequence-character-audit-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-complete-sequence-sensitivity
+#| tbl-cap: |
+#|   Complete-sequence-only matrix sensitivity after excluding included
+#|   strains that are not full-length by source or alignment audit. Estimates
+#|   are matrix-association point estimates using existing fitted analysis
+#|   objects; alignments, ML trees, and cartography maps are not refit.
+
+here::here("results", "Tables", "complete-sequence-sensitivity-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-sequence-missing-data-sensitivity
+#| tbl-cap: |
+#|   Pairwise-deletion versus complete-deletion sensitivity for
+#|   sequence-derived distances. Estimates compare each sequence-derived
+#|   distance matrix with the existing ML-tree cophenetic distance.
+
+here::here("results", "Tables", "sequence-missing-data-sensitivity-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 # Tree Model Selection
 
 For ML tree construction, the pipeline compares FLU-family amino-acid

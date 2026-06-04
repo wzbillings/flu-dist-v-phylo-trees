@@ -38,7 +38,7 @@ test_that("p-epitope distance matrix detects a toy epitope change", {
 
 	seq_one <- paste(rep("A", 326), collapse = "")
 	seq_two_chars <- rep("A", 326)
-	seq_two_chars[118] <- "B"
+	seq_two_chars[118] <- "C"
 	seq_two <- paste(seq_two_chars, collapse = "")
 	seqs <- c(one = seq_one, two = seq_two)
 
@@ -46,4 +46,42 @@ test_that("p-epitope distance matrix detects a toy epitope change", {
 
 	expect_gt(distances["one", "two"], 0)
 	expect_equal(distances["one", "two"], distances["two", "one"])
+})
+
+test_that("p-epitope excludes gaps and ambiguous residues from pairwise denominators", {
+	skip_if_not_installed("purrr")
+	skip_if_not_installed("stringr")
+
+	seq_one <- paste(rep("A", 326), collapse = "")
+	seq_two_chars <- rep("A", 326)
+	seq_two_chars[118] <- "C"
+	seq_two_chars[120] <- "-"
+	seq_two_chars[121] <- "X"
+	seq_two_chars[122] <- "?"
+	seq_two_chars[126] <- "B"
+	seq_two <- paste(seq_two_chars, collapse = "")
+
+	expect_equal(pepitope(seq_one, seq_two, "h1n1"), 1 / 20)
+})
+
+test_that("complete-deletion p-epitope distances remove non-comparable sites across all sequences", {
+	skip_if_not_installed("purrr")
+	skip_if_not_installed("stringr")
+
+	seq_one <- paste(rep("A", 326), collapse = "")
+	seq_two_chars <- rep("A", 326)
+	seq_three_chars <- rep("A", 326)
+	seq_two_chars[118] <- "C"
+	seq_three_chars[120] <- "X"
+	seqs <- c(
+		one = seq_one,
+		two = paste(seq_two_chars, collapse = ""),
+		three = paste(seq_three_chars, collapse = "")
+	)
+
+	distances <- dist.pepi(seqs, "h1n1", deletion = "complete")
+
+	expect_equal(distances["one", "two"], 1 / 23)
+	expect_equal(distances["one", "three"], 0)
+	expect_equal(distances, t(distances))
 })
