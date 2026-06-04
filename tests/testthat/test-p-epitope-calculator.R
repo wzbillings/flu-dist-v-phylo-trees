@@ -13,8 +13,6 @@ test_that("p-epitope site lookup returns expected H1 and H3 structures", {
 })
 
 test_that("p-epitope distance is zero for identical aligned sequences", {
-	skip_if_not_installed("ape")
-	skip_if_not_installed("phangorn")
 	skip_if_not_installed("purrr")
 	skip_if_not_installed("stringr")
 
@@ -31,8 +29,6 @@ test_that("p-epitope distance is zero for identical aligned sequences", {
 })
 
 test_that("p-epitope distance matrix detects a toy epitope change", {
-	skip_if_not_installed("ape")
-	skip_if_not_installed("phangorn")
 	skip_if_not_installed("purrr")
 	skip_if_not_installed("stringr")
 

@@ -7,6 +7,7 @@ toy_sensitivity_matrix <- function(values, names = letters[1:4]) {
 test_that("sequence character audit classifies residues, gaps, ambiguity, and unexpected codes", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")
+	skip_if_not_installed("purrr")
 
 	alignment_result <- list(
 		subtype = "h3",
@@ -30,6 +31,7 @@ test_that("sequence character audit classifies residues, gaps, ambiguity, and un
 test_that("complete-sequence sensitivity removes non-full-length included strains from matrices", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")
+	skip_if_not_installed("purrr")
 
 	cophenetic <- toy_sensitivity_matrix(c(1, 2, 3, 4, 5, 6))
 	year <- toy_sensitivity_matrix(c(1, 2, 3, 4, 5, 20))
@@ -70,6 +72,7 @@ test_that("complete-sequence sensitivity removes non-full-length included strain
 test_that("sequence missing-data sensitivity compares pairwise and complete deletion distances", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")
+	skip_if_not_installed("purrr")
 
 	alignment_result <- list(
 		subtype = "h1",
