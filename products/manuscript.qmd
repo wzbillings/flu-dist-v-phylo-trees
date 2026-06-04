@@ -75,10 +75,12 @@ were conducted separately for H1N1 and H3N2 strains.
 
 In order to compare with phylogenetic methods, we first computed a multiple
 sequence alignment (MSA) using the MUSCLE algorithm [@edgar2004]. The Grantham
-and $p$-Epitope distances were computed based on this MSA. For sequence-derived
-distances, aligned positions containing gaps, ambiguous or missing residue
-codes, or non-standard amino-acid codes were excluded from the relevant
-pair-specific denominator rather than treated as zero-distance substitutions.
+and $p$-Epitope distances were computed based on this MSA. We evaluated
+alignment sensitivity with alternative ClustalW and ClustalOmega protein
+alignments in the supplement. For sequence-derived distances, aligned positions
+containing gaps, ambiguous or missing residue codes, or non-standard
+amino-acid codes were excluded from the relevant pair-specific denominator
+rather than treated as zero-distance substitutions.
 The source sequence table contains full-length
 flags and accession/source metadata; after alignment, the pipeline checks
 non-gap protein lengths against the subtype-specific full-length reference
@@ -207,6 +209,17 @@ the supplement and do not refit alignments, ML trees, or cartography maps. In
 the current pipeline outputs, these targeted checks did not exceed the
 prespecified 0.10 absolute-change flag threshold; full-mode outputs should be
 reviewed before final publication-scale interpretation.
+
+Finally, we evaluated whether the matrix-association results for
+sequence-derived distances depend on the primary MUSCLE amino-acid alignment.
+This sensitivity analysis recomputes Grantham and $p$-Epitope distance
+matrices under ClustalW and ClustalOmega alignments, then compares those
+distance matrices with the existing primary ML-tree cophenetic distances. It
+does not refit ML trees, distance-based trees, or cartography maps under the
+alternative alignments. We also compare FLU-family model-test results across
+alignments and flag cases where the primary selected model is no longer within
+the approved model-performance tolerance. These outputs are reported in the
+supplement.
 
 The cartographic Mantel correlation for H1N1 is also moderate, indicating that
 the evolutionary pattern of H1N1 strains does not necessarily explain variation

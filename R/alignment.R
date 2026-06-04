@@ -3,12 +3,69 @@
 # Zane Billings
 ###
 
-align_subtype_sequences <- function(clean_sequences, subtype, settings = make_analysis_settings()) {
+valid_alignment_methods <- function() {
+	c("Muscle", "ClustalW", "ClustalOmega")
+}
+
+canonical_alignment_method <- function(method) {
+	if (!is.character(method) || length(method) != 1 || is.na(method) || method == "") {
+		stop("Alignment method must be a non-empty character scalar.", call. = FALSE)
+	}
+	matched <- valid_alignment_methods()[tolower(valid_alignment_methods()) == tolower(method)]
+	if (length(matched) != 1) {
+		stop(
+			"Unsupported alignment method: ",
+			method,
+			". Supported methods are: ",
+			paste(valid_alignment_methods(), collapse = ", "),
+			call. = FALSE
+		)
+	}
+	matched
+}
+
+canonical_alignment_methods <- function(methods) {
+	if (!is.character(methods) || length(methods) == 0) {
+		stop("Alignment sensitivity methods must be a non-empty character vector.", call. = FALSE)
+	}
+	out <- purrr::map_chr(methods, canonical_alignment_method)
+	validate_unique_values(out, "Alignment sensitivity methods")
+	out
+}
+
+alignment_method_key <- function(method) {
+	canonical_alignment_method(method) |>
+		tolower() |>
+		stringr::str_replace_all("[^a-z0-9]+", "")
+}
+
+alignment_sensitivity_methods <- function(settings = make_analysis_settings()) {
+	methods <- canonical_alignment_methods(settings$alignment_sensitivity_methods)
+	primary <- canonical_alignment_method(settings$alignment_method)
+	out <- setdiff(methods, primary)
+	if (length(out) == 0) {
+		stop("At least one non-primary alignment sensitivity method is required.", call. = FALSE)
+	}
+	out
+}
+
+settings_with_alignment_method <- function(settings, method) {
+	settings$alignment_method <- canonical_alignment_method(method)
+	settings
+}
+
+align_subtype_sequences <- function(
+		clean_sequences,
+		subtype,
+		settings = make_analysis_settings(),
+		alignment_method = settings$alignment_method
+	) {
 	check_required_columns(
 		clean_sequences,
 		c("subtype", "short_name", "protein_sequence", "full_length"),
 		"clean sequences"
 	)
+	alignment_method <- canonical_alignment_method(alignment_method)
 	subtype_requested <- stringr::str_to_lower(subtype)
 	subtype_data <- clean_sequences |>
 		dplyr::filter(.data$subtype == subtype_requested) |>
@@ -25,7 +82,7 @@ align_subtype_sequences <- function(clean_sequences, subtype, settings = make_an
 
 	protein_msa <- msa::msa(
 		protein_sequences,
-		method = settings$alignment_method,
+		method = alignment_method,
 		type = "protein",
 		order = "input",
 		verbose = FALSE
@@ -39,6 +96,7 @@ align_subtype_sequences <- function(clean_sequences, subtype, settings = make_an
 
 	list(
 		subtype = subtype_requested,
+		alignment_method = alignment_method,
 		protein_msa = protein_msa,
 		aligned_sequences = aligned_sequences
 	)

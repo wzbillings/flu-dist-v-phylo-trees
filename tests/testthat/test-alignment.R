@@ -1,3 +1,25 @@
+test_that("alignment method validation canonicalizes supported msa methods", {
+	skip_if_not_installed("purrr")
+	skip_if_not_installed("stringr")
+
+	expect_equal(valid_alignment_methods(), c("Muscle", "ClustalW", "ClustalOmega"))
+	expect_equal(canonical_alignment_method("muscle"), "Muscle")
+	expect_equal(canonical_alignment_methods(c("clustalw", "ClustalOmega")), c("ClustalW", "ClustalOmega"))
+	expect_equal(alignment_method_key("ClustalOmega"), "clustalomega")
+	expect_error(canonical_alignment_method("ExternalAligner"), "Unsupported alignment method")
+	expect_error(canonical_alignment_methods(c("ClustalW", "clustalw")), "duplicate")
+})
+
+test_that("analysis settings expose non-primary alignment sensitivity methods", {
+	settings <- make_analysis_settings("test")
+
+	expect_equal(settings$alignment_method, "Muscle")
+	expect_equal(alignment_sensitivity_methods(settings), c("ClustalW", "ClustalOmega"))
+
+	settings$alignment_sensitivity_methods <- "Muscle"
+	expect_error(alignment_sensitivity_methods(settings), "At least one non-primary")
+})
+
 test_that("alignment completeness is computed from aligned protein lengths without hard-coded strain names", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")

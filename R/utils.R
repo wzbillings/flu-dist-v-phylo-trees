@@ -293,6 +293,7 @@ make_analysis_settings <- function(mode = Sys.getenv("FLU_TARGETS_MODE", "test")
 		mode = mode,
 		seed = 370L,
 		alignment_method = "Muscle",
+		alignment_sensitivity_methods = c("ClustalW", "ClustalOmega"),
 		model_test_gamma_categories = if (is_test) 4L else seq(4L, 32L, by = 4L),
 		model_performance_tolerance = 0.10,
 		tree_fit_strategy = if (is_test) "fast_nni" else "pml_bb",
