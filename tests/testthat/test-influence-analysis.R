@@ -107,3 +107,39 @@ test_that("influence table and plot constructors return supplement-ready objects
 	expect_s3_class(make_cophenetic_influence_table(summary), "flextable")
 	expect_s3_class(plot_cophenetic_influence(summary), "ggplot")
 })
+
+test_that("influence plot data uses facet-specific strain ordering keys", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+
+	summary <- tibble::tibble(
+		method = c("year", "year", "cart", "cart"),
+		Comparison = c(
+			"Temporal distance",
+			"Temporal distance",
+			"Cartographic distance",
+			"Cartographic distance"
+		),
+		subtype = "h1",
+		Subtype = "H1N1",
+		`Removed strain` = c("shared", "other temporal", "shared", "other cart"),
+		`Estimate method` = "Mantel r",
+		`Full pairwise comparisons` = 6L,
+		`Leave-one-out pairwise comparisons` = 3L,
+		`Full estimate` = 0.5,
+		`Leave-one-out estimate` = c(0.6, 0.8, 0.4, 0.1),
+		`Estimate change` = c(0.1, 0.3, -0.1, -0.4),
+		`Absolute change` = c(0.1, 0.3, 0.1, 0.4),
+		`Flag threshold` = 0.10,
+		`Influence flag` = c("yes", "yes", "yes", "yes")
+	)
+
+	plot_data <- prepare_cophenetic_influence_plot_data(summary, top_n = 2L)
+	shared_keys <- plot_data |>
+		dplyr::filter(.data$`Removed strain` == "shared") |>
+		dplyr::pull("removed_strain_facet")
+
+	expect_equal(length(shared_keys), 2)
+	expect_equal(length(unique(shared_keys)), 2)
+	expect_equal(influence_plot_y_label(shared_keys), c("shared", "shared"))
+})

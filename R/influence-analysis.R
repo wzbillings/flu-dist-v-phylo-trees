@@ -215,11 +215,23 @@ make_cophenetic_influence_table <- function(
 		))
 }
 
-plot_cophenetic_influence <- function(
+influence_plot_y_separator <- function() {
+	"___facet___"
+}
+
+influence_plot_y_label <- function(x) {
+	sub(paste0(influence_plot_y_separator(), ".*$"), "", x)
+}
+
+prepare_cophenetic_influence_plot_data <- function(
 		cophenetic_influence_summary,
 		estimate_method = "Mantel r",
 		top_n = 6L
 	) {
+	top_n <- as.integer(top_n)
+	if (length(top_n) != 1 || is.na(top_n) || top_n < 1) {
+		stop("`top_n` must be a positive integer.", call. = FALSE)
+	}
 	plot_data <- cophenetic_influence_summary |>
 		dplyr::filter(.data$`Estimate method` == !!estimate_method) |>
 		dplyr::group_by(.data$Comparison, .data$Subtype) |>
@@ -227,14 +239,41 @@ plot_cophenetic_influence <- function(
 		dplyr::ungroup() |>
 		dplyr::mutate(
 			Comparison = factor(.data$Comparison, levels = rev(distance_method_labels())),
-			`Influence flag` = factor(.data$`Influence flag`, levels = c("no", "yes", "not estimable"))
+			`Influence flag` = factor(.data$`Influence flag`, levels = c("no", "yes", "not estimable")),
+			removed_strain_facet = paste(
+				.data$`Removed strain`,
+				.data$Comparison,
+				.data$Subtype,
+				sep = influence_plot_y_separator()
+			)
 		)
+
+	facet_levels <- plot_data |>
+		dplyr::arrange(.data$Comparison, .data$Subtype, .data$`Absolute change`) |>
+		dplyr::pull("removed_strain_facet")
+
+	plot_data |>
+		dplyr::mutate(
+			removed_strain_facet = factor(.data$removed_strain_facet, levels = unique(facet_levels))
+		)
+}
+
+plot_cophenetic_influence <- function(
+		cophenetic_influence_summary,
+		estimate_method = "Mantel r",
+		top_n = 6L
+	) {
+	plot_data <- prepare_cophenetic_influence_plot_data(
+		cophenetic_influence_summary,
+		estimate_method = estimate_method,
+		top_n = top_n
+	)
 
 	ggplot2::ggplot(
 		plot_data,
 		ggplot2::aes(
 			x = .data$`Estimate change`,
-			y = stats::reorder(.data$`Removed strain`, .data$`Absolute change`),
+			y = .data$removed_strain_facet,
 			color = .data$`Influence flag`
 		)
 	) +
@@ -250,6 +289,7 @@ plot_cophenetic_influence <- function(
 			values = c(no = "#4D4D4D", yes = "#D55E00", `not estimable` = "#999999"),
 			name = "Flagged"
 		) +
+		ggplot2::scale_y_discrete(labels = influence_plot_y_label) +
 		ggplot2::labs(
 			x = "Leave-one-out estimate change",
 			y = "Removed strain"
