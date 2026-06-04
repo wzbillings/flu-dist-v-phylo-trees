@@ -81,6 +81,8 @@ render_quarto_supplement <- function(
 		complete_sequence_sensitivity_table_file,
 		sequence_missing_data_sensitivity_file,
 		sequence_missing_data_sensitivity_table_file,
+		secondary_sequence_distance_sensitivity_file,
+		secondary_sequence_distance_sensitivity_table_file,
 		alignment_distance_sensitivity_file,
 		alignment_distance_sensitivity_table_file,
 		model_selection_table_file,
@@ -116,6 +118,8 @@ render_quarto_supplement <- function(
 	validate_file_exists(complete_sequence_sensitivity_table_file, "complete-sequence sensitivity table")
 	validate_file_exists(sequence_missing_data_sensitivity_file, "sequence missing-data sensitivity summary")
 	validate_file_exists(sequence_missing_data_sensitivity_table_file, "sequence missing-data sensitivity table")
+	validate_file_exists(secondary_sequence_distance_sensitivity_file, "secondary sequence-distance sensitivity summary")
+	validate_file_exists(secondary_sequence_distance_sensitivity_table_file, "secondary sequence-distance sensitivity table")
 	validate_file_exists(alignment_distance_sensitivity_file, "alignment distance sensitivity summary")
 	validate_file_exists(alignment_distance_sensitivity_table_file, "alignment distance sensitivity table")
 	validate_file_exists(model_selection_table_file, "tree model-selection table")

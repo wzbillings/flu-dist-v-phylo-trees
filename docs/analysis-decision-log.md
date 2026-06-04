@@ -4,6 +4,59 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-04 - Supplementary Secondary Sequence-Distance Metrics
+
+**Decision:** Add supplementary-only secondary sequence-distance metrics for
+sensitivity analysis: amino-acid Hamming distance, normalized optimal string
+alignment distance, $p$-all-epitope distance, and a BLOSUM62-derived
+dissimilarity. Keep temporal distance, Grantham distance, $p$-Epitope distance,
+and cartographic distance as the primary distance metrics. Do not add
+nucleotide sequence information or nucleotide-distance analyses to this paper.
+Do not implement LogDet unless a reviewer or coauthor requests it. Do not use
+the secondary distances to build neighbor-joining trees unless full-mode
+outputs show a major difference or a reviewer/coauthor requests those topology
+checks.
+
+For all secondary sequence metrics, use the same pairwise-deletion rule as the
+primary sequence-derived distances: compare standard amino-acid residues and
+exclude gaps, ambiguous or missing residue codes, and known nonstandard
+residue codes from the pair-specific denominator. Compute Hamming distance as
+the proportion of comparable aligned sites that differ. Compute optimal string
+alignment after pairwise deletion and normalize by the number of comparable
+sites. Compute $p$-all-epitope using the same H1N1/H3N2 epitope site sets as
+$p$-Epitope, but average the five site-specific Hamming distances rather than
+taking the maximum. Compute the BLOSUM62-derived dissimilarity per comparable
+site as `S(a,a) + S(b,b) - 2 * S(a,b)` from the BLOSUM62 substitution score
+matrix, then average across comparable sites.
+
+Compare each secondary metric's association with the primary ML-tree
+cophenetic distance against the closest primary sequence-distance comparator:
+Hamming, optimal string alignment, and BLOSUM62 against Grantham; and
+$p$-all-epitope against $p$-Epitope. Use the existing 0.10 absolute
+correlation-change flag threshold for the supplementary sensitivity table.
+
+**Rationale:** Grantham remains the primary whole-sequence amino-acid metric
+because it weights substitutions by physicochemical difference and replaced
+Hamming as the primary metric in an earlier decision. The secondary metrics
+provide simpler or alternative sequence-distance checks without changing the
+primary analysis. Nucleotide analyses are excluded because nucleotide changes
+are harder to map directly to antigenicity in this manuscript's framing.
+LogDet and secondary distance-tree topology checks add complexity and are
+deferred unless the sensitivity outputs or external feedback justify them.
+
+**Evidence / citation:** Human approval in chat on 2026-06-04; implementation
+in `R/secondary-sequence-distance.R`, `_targets.R`,
+`products/manuscript.qmd`, `products/supplement.qmd`, and related tests.
+
+**Alternatives considered:** Include nucleotide p-distance, add LogDet or
+other model-based distances immediately, promote Hamming back to a primary
+metric, or build secondary-metric neighbor-joining trees in the first pass.
+These alternatives were rejected or deferred for the current manuscript pass.
+
+**Impact:** The supplement should report secondary sequence-distance
+sensitivity outputs, but main-text interpretation should remain based on the
+primary four metrics until full-mode outputs and coauthor review are complete.
+
 ## 2026-06-04 - Matrix-Only Alignment Sensitivity Analysis
 
 **Decision:** Add a matrix-only alignment sensitivity analysis for the current

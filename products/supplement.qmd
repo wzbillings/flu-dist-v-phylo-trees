@@ -176,6 +176,49 @@ here::here("results", "Tables", "sequence-missing-data-sensitivity-table.rds") |
 	fit_flextable_to_page()
 ```
 
+# Secondary Sequence-Distance Sensitivity
+
+The primary whole-sequence amino-acid metric remains Grantham distance, and
+the primary epitope-level sequence metric remains $p$-Epitope distance. As
+supplementary sensitivity metrics, the pipeline also computes amino-acid
+Hamming distance, normalized optimal string alignment distance,
+$p$-all-epitope distance, and a BLOSUM62-derived dissimilarity. These metrics
+are intended to check whether the qualitative matrix-association pattern is
+similar under simpler or alternative sequence distances; they are not part of
+the primary four distance metrics.
+
+All secondary sequence distances use the same pairwise-deletion rule as the
+primary sequence-derived distances. Hamming distance is the proportion of
+comparable aligned amino-acid sites that differ. Optimal string alignment is
+computed after pairwise deletion of non-comparable aligned sites and normalized
+by the number of comparable sites. $p$-all-epitope uses the same H1N1 and H3N2
+epitope site sets as $p$-Epitope but averages the five epitope-specific
+Hamming distances rather than taking the maximum. BLOSUM62 dissimilarity is
+computed per comparable aligned site as
+`S(a,a) + S(b,b) - 2 * S(a,b)` from the BLOSUM62 substitution score matrix,
+then averaged across comparable sites.
+
+The secondary matrix-sensitivity table compares each secondary metric's
+association with the primary ML-tree cophenetic distance against the closest
+primary sequence-distance comparator. Hamming, optimal string alignment, and
+BLOSUM62 are compared against Grantham distance; $p$-all-epitope is compared
+against $p$-Epitope distance. Rows are flagged when the absolute association
+change is at least 0.10 correlation units. These metrics are not used to build
+neighbor-joining trees unless full-mode outputs show a major difference or a
+coauthor or reviewer requests those topology checks.
+
+```{r}
+#| label: tbl-secondary-sequence-distance-sensitivity
+#| tbl-cap: |
+#|   Supplementary secondary sequence-distance sensitivity metrics. Estimates
+#|   compare each secondary metric with ML-tree cophenetic distance and with
+#|   its closest primary sequence-distance comparator.
+
+here::here("results", "Tables", "secondary-sequence-distance-sensitivity-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 # Alignment Sensitivity
 
 The primary sequence analysis uses MUSCLE protein alignments through the
