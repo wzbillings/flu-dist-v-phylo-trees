@@ -45,6 +45,34 @@ test_that("alignment distance sensitivity compares primary and alternative align
 	expect_s3_class(make_alignment_distance_sensitivity_table(out), "flextable")
 })
 
+test_that("alignment sensitivity distances only include sequence-derived methods", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+	skip_if_not_installed("purrr")
+
+	alignment_result <- list(
+		subtype = "h1",
+		aligned_sequences = tibble::tibble(
+			short_name = c("one", "two", "three"),
+			pro_aligned = c(
+				paste(rep("A", 326), collapse = ""),
+				paste(rep("V", 326), collapse = ""),
+				paste(rep("S", 326), collapse = "")
+			),
+			source_full_length = c(TRUE, TRUE, TRUE)
+		)
+	)
+
+	out <- calculate_alignment_sensitivity_distances(
+		list(ClustalW = list(h1 = alignment_result))
+	)
+
+	expect_equal(names(out), "ClustalW")
+	expect_equal(names(out$ClustalW$h1), c("grantham", "pepi"))
+	expect_false("year" %in% names(out$ClustalW$h1))
+	expect_false("cart" %in% names(out$ClustalW$h1))
+})
+
 test_that("alignment model sensitivity flags primary model only when tolerance is exceeded", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")

@@ -53,21 +53,26 @@ make_alignment_sensitivity_alignment_summary <- function(alignments_by_method) {
 }
 
 calculate_alignment_sensitivity_distances <- function(
-		alignments_by_method,
-		h1_cartography_map,
-		h3_cartography_map,
-		virus_metadata
+		alignments_by_method
 	) {
-	cartography_maps <- list(h1 = h1_cartography_map, h3 = h3_cartography_map)
 	purrr::imap(
 		alignments_by_method,
 		\(alignments_by_subtype, alignment_method) purrr::imap(
 			alignments_by_subtype,
-			\(alignment_result, subtype) calculate_subtype_distances(
-				alignment_result,
-				cartography_maps[[subtype]],
-				virus_metadata
-			)
+			\(alignment_result, subtype) {
+				aligned_proteins <- extract_aligned_proteins(alignment_result)
+				distances <- list(
+					grantham = calculate_grantham_distance(aligned_proteins),
+					pepi = calculate_pepitope_distance(aligned_proteins, subtype = subtype)
+				)
+				distances <- standardize_distance_order(
+					distances,
+					reference_names = names(aligned_proteins),
+					subtype = subtype
+				)
+				validate_distance_set(distances, subtype = subtype)
+				distances
+			}
 		)
 	)
 }

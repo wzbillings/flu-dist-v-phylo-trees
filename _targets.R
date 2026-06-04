@@ -129,12 +129,7 @@ list(
 	),
 	tar_target(
 		alignment_sensitivity_distances,
-		calculate_alignment_sensitivity_distances(
-			alignment_sensitivity_alignments,
-			h1_cartography_map,
-			h3_cartography_map,
-			clean_sequences
-		)
+		calculate_alignment_sensitivity_distances(alignment_sensitivity_alignments)
 	),
 	tar_target(distances_by_subtype, list(h1 = h1_distances, h3 = h3_distances)),
 	tar_target(distance_table, combine_distance_tables(distances_by_subtype, unique_pairs = TRUE)),
