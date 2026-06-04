@@ -4,6 +4,54 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-04 - Complete-Sequence and Missing-Data Sensitivity Audit
+
+**Decision:** Add a targeted sequence-completeness and missing-data audit for
+the current analysis panel. Treat standard amino-acid residues as comparable
+for sequence-derived distances. Exclude alignment gaps, ambiguous or missing
+residue codes (`B`, `J`, `X`, `Z`, and `?`), and known nonstandard amino-acid
+codes (`O` and `U`) from the relevant pair-specific denominators rather than
+counting them as zero-distance substitutions. Surface any other aligned
+sequence characters as unexpected audit findings for human source-data review.
+Add a complete-sequence-only matrix sensitivity that removes included
+non-full-length strains from the existing distance matrices, plus a cheap
+pairwise-deletion versus complete-deletion sensitivity for Grantham and
+p-epitope distances. Use the existing 0.10 absolute correlation-change
+threshold as the material-change flag for the targeted matrix-association
+sensitivity summaries. Do not refit alignments, ML trees, distance trees, or
+cartography maps in this pass.
+
+**Rationale:** `MS/85` is currently expected to be the only included
+non-full-length analysis strain, and the prior leave-one-strain-out influence
+analysis is relevant but not sufficient to document sequence completeness and
+missing-data assumptions. Pairwise deletion preserves the primary estimand while
+avoiding treating unknown residues or gaps as biological matches. Complete
+deletion is cheap enough to report as a denominator sensitivity, whereas
+complete-sequence-only tree refitting and gap-as-state phylogenetic analyses
+would answer broader questions and may require heavier computation.
+
+**Evidence / citation:** Human approval in chat on 2026-06-04; implementation
+in `R/grantham-distance.R`, `R/p-epitope-calculator.R`,
+`R/sequence-sensitivity-audit.R`, `_targets.R`, `products/manuscript.qmd`, and
+`products/supplement.qmd`. Pairwise and complete deletion are documented
+treatments for gaps, missing data, and ambiguous states in sequence-distance
+software documentation such as `phangorn` and MEGA.
+
+**Alternatives considered:** Leave p-epitope gap/ambiguity handling delegated
+to `phangorn::dist.hamming()` without explicit denominator control; treat
+ambiguous residues as mismatches; treat gaps as a distinct biological state;
+delete non-comparable sites globally for the primary analysis; or refit
+complete-sequence-only alignments and trees immediately. The first two options
+were rejected for transparency and biological interpretability. The latter
+three are deferred unless requested by ZB, coauthors, or reviewers.
+
+**Impact:** Sequence-derived distance calculations now handle gaps and
+ambiguous residues consistently across Grantham and p-epitope metrics. The
+supplement should report the aligned character audit, complete-sequence matrix
+sensitivity, and pairwise-versus-complete deletion sensitivity. Any unexpected
+sequence characters or sensitivity flags require human review before
+publication-scale interpretation.
+
 ## 2026-06-03 - Leave-One-Strain-Out Matrix Influence Analysis
 
 **Decision:** Add a leave-one-strain-out influence analysis for the current

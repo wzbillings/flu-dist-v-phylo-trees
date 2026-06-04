@@ -59,6 +59,10 @@ list(
 		make_alignment_completeness_records(list(h1 = h1_alignment, h3 = h3_alignment))
 	),
 	tar_target(
+		sequence_character_audit,
+		make_sequence_character_audit(list(h1 = h1_alignment, h3 = h3_alignment))
+	),
+	tar_target(
 		h1_protein_alignment_file,
 		write_rds_target(h1_alignment$protein_msa, "results/derived/h1-pro-alignment.rds"),
 		format = "file"
@@ -81,6 +85,11 @@ list(
 	tar_target(
 		alignment_summary_file,
 		write_rds_target(alignment_summary, "results/derived/alignment-summary.rds"),
+		format = "file"
+	),
+	tar_target(
+		sequence_character_audit_file,
+		write_rds_target(sequence_character_audit, "results/derived/sequence-character-audit.rds"),
 		format = "file"
 	),
 	
@@ -440,6 +449,22 @@ list(
 		calculate_cophenetic_influence_summary(distances_with_tree_by_subtype, analysis_settings)
 	),
 	tar_target(
+		complete_sequence_sensitivity,
+		calculate_complete_sequence_matrix_sensitivity(
+			distances_with_tree_by_subtype,
+			strain_provenance_records,
+			threshold = analysis_settings$influence_threshold
+		)
+	),
+	tar_target(
+		sequence_missing_data_sensitivity,
+		calculate_sequence_missing_data_sensitivity(
+			list(h1 = h1_alignment, h3 = h3_alignment),
+			distances_with_tree_by_subtype,
+			threshold = analysis_settings$influence_threshold
+		)
+	),
+	tar_target(
 		cophenetic_influence_summary_file,
 		write_rds_target(
 			cophenetic_influence_summary,
@@ -460,6 +485,38 @@ list(
 		write_cophenetic_influence_plot(
 			cophenetic_influence_summary,
 			"results/Figures/leave-one-strain-out-influence-plot.png"
+		),
+		format = "file"
+	),
+	tar_target(
+		complete_sequence_sensitivity_file,
+		write_rds_target(
+			complete_sequence_sensitivity,
+			"results/derived/complete-sequence-sensitivity.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		complete_sequence_sensitivity_table_file,
+		write_complete_sequence_sensitivity_table(
+			complete_sequence_sensitivity,
+			"results/Tables/complete-sequence-sensitivity-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		sequence_missing_data_sensitivity_file,
+		write_rds_target(
+			sequence_missing_data_sensitivity,
+			"results/derived/sequence-missing-data-sensitivity.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		sequence_missing_data_sensitivity_table_file,
+		write_sequence_missing_data_sensitivity_table(
+			sequence_missing_data_sensitivity,
+			"results/Tables/sequence-missing-data-sensitivity-table.rds"
 		),
 		format = "file"
 	),
@@ -550,6 +607,14 @@ list(
 		format = "file"
 	),
 	tar_target(
+		sequence_character_audit_table_file,
+		write_sequence_character_audit_table(
+			sequence_character_audit,
+			"results/Tables/sequence-character-audit-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
 		ml_tree_support_summary,
 		make_ml_tree_support_summary(h1_ml_tree_support, h3_ml_tree_support)
 	),
@@ -626,11 +691,16 @@ list(
 			cophenetic_influence_summary_file,
 			cophenetic_influence_table_file,
 			cophenetic_influence_plot_file,
+			complete_sequence_sensitivity_file,
+			complete_sequence_sensitivity_table_file,
+			sequence_missing_data_sensitivity_file,
+			sequence_missing_data_sensitivity_table_file,
 			model_selection_table_file,
 			strain_flow_table_file,
 			strain_accession_table_file,
 			strain_pair_count_table_file,
 			sequence_source_summary_table_file,
+			sequence_character_audit_table_file,
 			cartography_diagnostics_summary_file,
 			cartography_diagnostics_table_file,
 			tree_topology_distance_table_file,

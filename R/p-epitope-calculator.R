@@ -90,36 +90,66 @@ get_pepitope_sites <- function(
 # Utility function for subsetting characters in a single string (in R language,
 # getting a substring by position for a character vector of length 1)
 extract_string_chars <- function(str, pos) {
-	sub <- charToRaw(str)[pos]
-	return(rawToChar(sub))
+	residues <- split_sequence_characters(str)
+	if (any(pos > length(residues))) {
+		stop("p-epitope site positions exceed the aligned sequence length.", call. = FALSE)
+	}
+	paste(residues[pos], collapse = "")
+}
+
+extract_site_residues <- function(seq, pos) {
+	extract_string_chars(seq, pos) |>
+		split_sequence_characters() |>
+		toupper()
+}
+
+pepitope_site_mask <- function(seqs, sites) {
+	residue_matrix <- do.call(rbind, purrr::map(seqs, extract_site_residues, pos = sites))
+	apply(residue_matrix, 2, \(site) all(is_standard_amino_acid(site)))
+}
+
+pepitope_complete_site_masks <- function(seqs, subtype) {
+	p_epi_sites <- get_pepitope_sites(subtype, sites = c('a', 'b', 'c', 'd', 'e'))
+	purrr::map(p_epi_sites, \(sites) pepitope_site_mask(seqs, sites))
+}
+
+pepitope_epitope_distance <- function(seq_1, seq_2, sites, site_mask = NULL) {
+	residues_1 <- extract_site_residues(seq_1, sites)
+	residues_2 <- extract_site_residues(seq_2, sites)
+	comparable <- is_standard_amino_acid(residues_1) & is_standard_amino_acid(residues_2)
+	if (!is.null(site_mask)) {
+		if (length(site_mask) != length(sites)) {
+			stop("p-epitope site mask must match the number of epitope sites.", call. = FALSE)
+		}
+		comparable <- comparable & site_mask
+	}
+	if (!any(comparable)) {
+		return(NA_real_)
+	}
+	mean(residues_1[comparable] != residues_2[comparable])
 }
 
 # Compute the p-epitope distance between two strings
-pepitope <- function(seq_1, seq_2, subtype) {
+pepitope <- function(seq_1, seq_2, subtype, site_masks = NULL) {
 	# Get the numbers for the residues in each epitope
 	p_epi_sites <- get_pepitope_sites(subtype, sites = c('a', 'b', 'c', 'd', 'e'))
 	
 	epi_dists <-
-		purrr::map_dbl(
+		purrr::imap_dbl(
 			p_epi_sites,
-			# p-epitope is an epitope-level mismatch proportion; this route keeps
-			# special-character handling consistent across epitope subsets.
-			# First we subset the two strings to only contain residues from the
-			# current epitope.
-			\(current_sites) list(
-				extract_string_chars(seq_1, current_sites),
-				extract_string_chars(seq_2, current_sites)
-			) |>
-				# Then we convert into an arbitrary format that phangorn likes, because
-				# it likes this thing but doesn't like the list of sequences
-				ape::as.AAbin() |>
-				# Then use phangorn's amino-acid distance routine for the current
-				# epitope sequences.
-				phangorn::dist.hamming()
+			\(current_sites, site_name) pepitope_epitope_distance(
+				seq_1,
+				seq_2,
+				current_sites,
+				site_mask = site_masks[[site_name]]
+			)
 		)
 	
 	# Now we get the maximum of those and return it
-	p_epi <- max(epi_dists)
+	if (all(is.na(epi_dists))) {
+		return(NA_real_)
+	}
+	p_epi <- max(epi_dists, na.rm = TRUE)
 	return(p_epi)
 }
 
@@ -127,9 +157,23 @@ pepitope <- function(seq_1, seq_2, subtype) {
 # pepitope(prot_h3[[1]], prot_h3[[2]], 'h1')
 
 # Compute a p-epitope distance matrix for all sequences in a character vector
-dist.pepi <- function(seqs, subtype) {
+dist.pepi <- function(seqs, subtype, deletion = c("pairwise", "complete")) {
+	deletion <- match.arg(deletion)
+	if (!is.character(seqs)) {
+		stop("seqs must be a character vector of aligned amino-acid sequences.", call. = FALSE)
+	}
+	if (is.null(names(seqs)) || any(is.na(names(seqs))) || any(names(seqs) == "")) {
+		stop("seqs must have non-missing strain names.", call. = FALSE)
+	}
+	validate_unique_values(names(seqs), "p-epitope sequence names")
+	site_masks <- if (identical(deletion, "complete")) {
+		pepitope_complete_site_masks(seqs, subtype)
+	} else {
+		NULL
+	}
 	# Set up an empty matrix to hold results
 	res <- matrix(
+		NA_real_,
 		nrow = length(seqs),
 		ncol = length(seqs),
 		dimnames = list(names(seqs), names(seqs))
@@ -137,19 +181,19 @@ dist.pepi <- function(seqs, subtype) {
 	
 	# Calculate the lower triangle of the distance matrix for all unique
 	# combinations of two strains
-	for (i in 2:nrow(res)) {
-		for (j in 1:(i-1)) {
-			res[[i, j]] <- pepitope(seqs[[i]], seqs[[j]], subtype)
+	if (length(seqs) > 1) {
+		for (i in 2:nrow(res)) {
+			for (j in 1:(i-1)) {
+				distance <- pepitope(seqs[[i]], seqs[[j]], subtype, site_masks = site_masks)
+				res[[i, j]] <- distance
+				res[[j, i]] <- distance
+			}
 		}
 	}
 	
 	# Set the diagonal to zero
 	diag(res) <- 0
-	
-	# Quickly fill in the upper triangle
-	out <- res |> as.dist() |> as.matrix()
-	
-	return(out)
+	return(res)
 }
 
 # test <- dist.pepi(prot_h1, 'h1')

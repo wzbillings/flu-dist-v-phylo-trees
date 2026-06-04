@@ -77,11 +77,16 @@ render_quarto_supplement <- function(
 		influence_summary_file,
 		influence_table_file,
 		influence_plot_file,
+		complete_sequence_sensitivity_file,
+		complete_sequence_sensitivity_table_file,
+		sequence_missing_data_sensitivity_file,
+		sequence_missing_data_sensitivity_table_file,
 		model_selection_table_file,
 		strain_flow_table_file,
 		strain_accession_table_file,
 		strain_pair_count_table_file,
 		sequence_source_summary_table_file,
+		sequence_character_audit_table_file,
 		cartography_diagnostics_summary_file,
 		cartography_diagnostics_table_file,
 		tree_topology_distance_table_file,
@@ -103,11 +108,16 @@ render_quarto_supplement <- function(
 	validate_file_exists(influence_summary_file, "leave-one-strain-out influence summary")
 	validate_file_exists(influence_table_file, "leave-one-strain-out influence table")
 	validate_file_exists(influence_plot_file, "leave-one-strain-out influence plot")
+	validate_file_exists(complete_sequence_sensitivity_file, "complete-sequence sensitivity summary")
+	validate_file_exists(complete_sequence_sensitivity_table_file, "complete-sequence sensitivity table")
+	validate_file_exists(sequence_missing_data_sensitivity_file, "sequence missing-data sensitivity summary")
+	validate_file_exists(sequence_missing_data_sensitivity_table_file, "sequence missing-data sensitivity table")
 	validate_file_exists(model_selection_table_file, "tree model-selection table")
 	validate_file_exists(strain_flow_table_file, "strain flow audit table")
 	validate_file_exists(strain_accession_table_file, "strain provenance accession table")
 	validate_file_exists(strain_pair_count_table_file, "strain pair-count table")
 	validate_file_exists(sequence_source_summary_table_file, "sequence source summary table")
+	validate_file_exists(sequence_character_audit_table_file, "sequence character audit table")
 	validate_file_exists(cartography_diagnostics_summary_file, "cartography diagnostics summary")
 	validate_file_exists(cartography_diagnostics_table_file, "cartography diagnostics table")
 	validate_file_exists(tree_topology_distance_table_file, "tree topology-distance table")

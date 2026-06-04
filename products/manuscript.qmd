@@ -75,10 +75,11 @@ were conducted separately for H1N1 and H3N2 strains.
 
 In order to compare with phylogenetic methods, we first computed a multiple
 sequence alignment (MSA) using the MUSCLE algorithm [@edgar2004]. The Grantham
-and $p$-Epitope distances were computed based on this MSA. For Grantham
-distance, aligned positions containing gaps, ambiguous residues, or non-standard
-amino acids were excluded from the pair-specific denominator rather than treated
-as zero-distance substitutions. The source sequence table contains full-length
+and $p$-Epitope distances were computed based on this MSA. For sequence-derived
+distances, aligned positions containing gaps, ambiguous or missing residue
+codes, or non-standard amino-acid codes were excluded from the relevant
+pair-specific denominator rather than treated as zero-distance substitutions.
+The source sequence table contains full-length
 flags and accession/source metadata; after alignment, the pipeline checks
 non-gap protein lengths against the subtype-specific full-length reference
 rather than relying on strain-name exceptions. We had 18 H1N1 strains and 21
@@ -195,6 +196,17 @@ at least 0.10 absolute correlation units and is reported in the supplement. The
 analysis is intended to diagnose whether subtype-specific distance-matrix
 associations are driven by individual strains; it does not refit the sequence
 alignment, ML tree, or cartography map after each removal.
+
+We also evaluated sequence-completeness and missing-data assumptions directly.
+This targeted audit identifies non-full-length included strains, compares the
+existing matrix associations with associations after excluding non-full-length
+strains, and compares the primary pairwise-deletion rule for sequence-derived
+distances with a complete-deletion rule that removes non-comparable sites across
+all included strains within subtype. These sensitivity outputs are reported in
+the supplement and do not refit alignments, ML trees, or cartography maps. In
+the current pipeline outputs, these targeted checks did not exceed the
+prespecified 0.10 absolute-change flag threshold; full-mode outputs should be
+reviewed before final publication-scale interpretation.
 
 The cartographic Mantel correlation for H1N1 is also moderate, indicating that
 the evolutionary pattern of H1N1 strains does not necessarily explain variation

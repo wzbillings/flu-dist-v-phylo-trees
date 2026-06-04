@@ -41,7 +41,7 @@ grantham_substitution_matrix <- function() {
 }
 
 split_residues <- function(seq) {
-	strsplit(seq, "", fixed = FALSE, useBytes = TRUE)[[1]] |>
+	split_sequence_characters(seq) |>
 		toupper()
 }
 
@@ -58,14 +58,39 @@ validate_aligned_sequence_pair <- function(seq_1, seq_2) {
 	invisible(TRUE)
 }
 
+sequence_residue_matrix <- function(seqs) {
+	residues <- purrr::map(seqs, split_residues)
+	widths <- purrr::map_int(residues, length)
+	if (length(unique(widths)) != 1) {
+		stop("Sequences must have the same aligned length.", call. = FALSE)
+	}
+	do.call(rbind, residues)
+}
+
+complete_deletion_site_mask <- function(seqs) {
+	residue_matrix <- sequence_residue_matrix(seqs)
+	apply(residue_matrix, 2, \(site) all(is_standard_amino_acid(site)))
+}
+
 # Non-standard residues, ambiguous residues, and gaps are excluded from the
 # denominator for each pair. Pairs with no comparable sites return NA.
-grantham_pair_distance <- function(seq_1, seq_2, matrix = grantham_substitution_matrix()) {
+grantham_pair_distance <- function(
+		seq_1,
+		seq_2,
+		matrix = grantham_substitution_matrix(),
+		site_mask = NULL
+	) {
 	validate_aligned_sequence_pair(seq_1, seq_2)
 	
 	residues_1 <- split_residues(seq_1)
 	residues_2 <- split_residues(seq_2)
-	comparable <- residues_1 %in% rownames(matrix) & residues_2 %in% colnames(matrix)
+	comparable <- is_standard_amino_acid(residues_1) & is_standard_amino_acid(residues_2)
+	if (!is.null(site_mask)) {
+		if (length(site_mask) != length(residues_1)) {
+			stop("Site mask must match the aligned sequence length.", call. = FALSE)
+		}
+		comparable <- comparable & site_mask
+	}
 	
 	if (!any(comparable)) {
 		return(NA_real_)
@@ -75,7 +100,8 @@ grantham_pair_distance <- function(seq_1, seq_2, matrix = grantham_substitution_
 	mean(scores)
 }
 
-dist_grantham <- function(seqs) {
+dist_grantham <- function(seqs, deletion = c("pairwise", "complete")) {
+	deletion <- match.arg(deletion)
 	if (!is.character(seqs)) {
 		stop("seqs must be a character vector of aligned amino-acid sequences.", call. = FALSE)
 	}
@@ -83,6 +109,7 @@ dist_grantham <- function(seqs) {
 		stop("seqs must have non-missing strain names.", call. = FALSE)
 	}
 	validate_unique_values(names(seqs), "Grantham sequence names")
+	site_mask <- if (identical(deletion, "complete")) complete_deletion_site_mask(seqs) else NULL
 	
 	res <- matrix(
 		NA_real_,
@@ -99,7 +126,8 @@ dist_grantham <- function(seqs) {
 				distance <- grantham_pair_distance(
 					seqs[[i]],
 					seqs[[j]],
-					matrix = substitution_matrix
+					matrix = substitution_matrix,
+					site_mask = site_mask
 				)
 				res[[i, j]] <- distance
 				res[[j, i]] <- distance

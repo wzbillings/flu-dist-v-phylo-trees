@@ -22,6 +22,9 @@ The implemented tests cover fast deterministic behavior:
   summaries, and unique-pair count audit helpers;
 - protein-only alignment summaries and alignment-derived full-length checks;
 - p-epitope site lookup and basic p-epitope distance-matrix structure;
+- sequence character classification, p-epitope ambiguous-residue exclusion,
+  complete-deletion alternatives for sequence-derived distances, and
+  complete-sequence-only matrix-sensitivity helpers;
 - lightweight manuscript/table helper functions that do not render plots, tables, or documents;
 - strain-level bootstrap helper behavior for distance-correlation intervals;
 - Mantel matrix-comparison summaries that exclude diagonal and duplicate
@@ -73,6 +76,10 @@ Assumptions:
 - `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, vector normalization, shared-strain alignment, unique off-diagonal pair extraction, and small deterministic Mantel permutation result structures.
 - `tests/testthat/test-grantham-distance.R`: tests canonical Grantham matrix values, per-comparable-site averaging, explicit gap/ambiguous residue exclusion, and named symmetric matrix output.
 - `tests/testthat/test-p-epitope-calculator.R`: tests p-epitope site lookup, invalid subtype handling, and basic p-epitope distance-matrix properties.
+- `tests/testthat/test-sequence-sensitivity-audit.R`: tests aligned sequence
+  character classification, complete-sequence-only matrix sensitivity, and
+  pairwise-deletion versus complete-deletion missing-data sensitivity on toy
+  aligned sequences.
 - `tests/testthat/test-cartography-diagnostics.R`: tests pure helper behavior
   for `.ace`-derived map diagnostics, including titer missingness summaries,
   unavailable optimizer metadata reporting, and supplement-ready table labels.
