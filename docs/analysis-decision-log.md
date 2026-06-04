@@ -4,6 +4,42 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-03 - Leave-One-Strain-Out Matrix Influence Analysis
+
+**Decision:** Add a leave-one-strain-out influence analysis for the current
+distance-matrix associations. For each subtype, remove one strain at a time
+from the existing ML-tree cophenetic and candidate distance matrices, then
+recompute the observed association with temporal, Grantham, p-epitope, and
+cartographic distance on the remaining unique off-diagonal strain pairs. Use an
+absolute change of at least 0.10 correlation units as the flagging threshold.
+Retain both Mantel-r and descriptive Pearson point-estimate rows in the derived
+summary, focus the supplement display on Mantel r, and include a short
+sensitivity-analysis section in the main manuscript. Do not refit alignments,
+ML trees, or cartography maps for this pass.
+
+**Rationale:** The approved robustness-check set called for a
+leave-one-strain-out influence check for matrix correlations. Subsetting the
+existing matrices directly evaluates whether the reported matrix-association
+estimates are driven by individual strains while preserving the current
+targets pipeline and avoiding a much more expensive, scientifically different
+delete-and-refit analysis.
+
+**Evidence / citation:** Human approval in chat on 2026-06-03; implementation
+in `R/influence-analysis.R`, `_targets.R`, `products/manuscript.qmd`, and
+`products/supplement.qmd`.
+
+**Alternatives considered:** Refit the MSA, ML tree, and cartography-derived
+objects after each strain deletion; report only descriptive Pearson estimates;
+or omit the analysis from the main manuscript when flags do not materially
+affect interpretation. The detailed refit-style leave-one-out analysis is
+deferred unless requested by a coauthor or reviewer.
+
+**Impact:** The sensitivity analysis should help diagnose whether individual
+strains strongly influence temporal, Grantham, p-epitope, or cartographic
+agreement with ML-tree distance. Flagged rows require scientific interpretation
+before strengthening or changing manuscript claims. Full-mode outputs should be
+regenerated before final publication-scale interpretation.
+
 ## 2026-06-01 - Strain Provenance and Inclusion Audit Outputs
 
 **Decision:** Add pipeline-derived strain provenance and inclusion audit

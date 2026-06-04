@@ -185,6 +185,17 @@ here::here("results", "Tables", "subtype-mantel-contrast-table.rds") |>
 	readr::read_rds()
 ```
 
+## Sensitivity analyses
+
+We evaluated leave-one-strain-out influence by removing each strain within
+subtype from the existing distance matrices and recomputing the Mantel
+association between ML-tree cophenetic distance and each candidate distance
+metric. This sensitivity analysis flags removals that change the correlation by
+at least 0.10 absolute correlation units and is reported in the supplement. The
+analysis is intended to diagnose whether subtype-specific distance-matrix
+associations are driven by individual strains; it does not refit the sequence
+alignment, ML tree, or cartography map after each removal.
+
 The cartographic Mantel correlation for H1N1 is also moderate, indicating that
 the evolutionary pattern of H1N1 strains does not necessarily explain variation
 in observed immune responses. For H3N2, the cartographic correlation was the
