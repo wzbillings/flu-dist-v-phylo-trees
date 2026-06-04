@@ -4,6 +4,55 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-04 - Matrix-Only Alignment Sensitivity Analysis
+
+**Decision:** Add a matrix-only alignment sensitivity analysis for the current
+amino-acid workflow. Keep MUSCLE as the primary alignment method and use
+ClustalW and ClustalOmega, through the existing `msa` package, as alternative
+protein alignments. Recompute sequence-derived Grantham and p-epitope distance
+matrices under each alternative alignment, then compare their matrix
+associations with the existing primary MUSCLE ML-tree cophenetic distances.
+Use the existing 0.10 absolute correlation-change threshold as the material
+alignment-distance flag. Do not include nucleotide alignments or nucleotide
+distances. Do not refit alternative ML trees or distance-based trees in this
+first pass.
+
+Also compare FLU-family amino-acid model-test results across primary and
+alternative alignments. Flag model sensitivity only when the primary selected
+tree model's log-likelihood loss under an alternative alignment exceeds the
+existing 10% model-performance tolerance, paralleling the common-versus-subtype
+model-selection rule.
+
+**Rationale:** The manuscript needs to document whether the primary
+sequence-distance conclusions depend on the MUSCLE amino-acid alignment.
+ClustalW and ClustalOmega are available through the locked `msa` dependency and
+do not require external command-line binaries. A matrix-only first pass is
+computationally modest and directly evaluates the alignment dependence of
+sequence-derived distance matrices while preserving the current ML tree as the
+reference outcome. Alternative tree refitting is scientifically broader and
+more expensive, so it is deferred unless a coauthor or reviewer asks for it.
+
+**Evidence / citation:** Human approval in chat on 2026-06-04; implementation
+in `R/alignment.R`, `R/alignment-sensitivity.R`, `R/utils.R`, `_targets.R`,
+`products/manuscript.qmd`, `products/supplement.qmd`, and related tests. The
+`msa` package documents integrated support for MUSCLE, ClustalW, and
+ClustalOmega protein alignments.
+
+**Alternatives considered:** Include nucleotide alignments or nucleotide
+distance metrics; refit ML trees and distance-based trees under each
+alternative alignment immediately; treat any model-name change as a sensitivity
+flag even if the primary selected model remains within the approved
+performance tolerance; or block the pipeline on unavailable external aligner
+binaries. Nucleotide analyses were rejected as out of scope for the current HA
+protein-distance question. Alternative tree refits are deferred. Model changes
+within tolerance are recorded but not flagged as material. External aligners
+are not used in this pass.
+
+**Impact:** The supplement should report alignment-distance and model-selection
+sensitivity tables. Alignment sensitivity flags require human interpretation
+before final manuscript claims are strengthened or changed. Publication-scale
+interpretation still requires full-mode regeneration and review.
+
 ## 2026-06-04 - Complete-Sequence and Missing-Data Sensitivity Audit
 
 **Decision:** Add a targeted sequence-completeness and missing-data audit for

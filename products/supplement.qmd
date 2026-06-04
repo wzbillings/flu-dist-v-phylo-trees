@@ -176,6 +176,53 @@ here::here("results", "Tables", "sequence-missing-data-sensitivity-table.rds") |
 	fit_flextable_to_page()
 ```
 
+# Alignment Sensitivity
+
+The primary sequence analysis uses MUSCLE protein alignments through the
+`msa` package. As an alignment-method sensitivity check, the pipeline also
+computes ClustalW and ClustalOmega protein alignments for the same included
+H1N1 and H3N2 strain panels. Nucleotide alignments and nucleotide distances are
+not included because the current distance metrics and tree models are based on
+hemagglutinin amino-acid sequences.
+
+The matrix-distance sensitivity below recomputes Grantham and p-epitope
+distances under each alternative alignment and compares those distance matrices
+with the primary MUSCLE ML-tree cophenetic distances. This analysis does not
+refit ML trees, distance-based trees, or cartography maps under the alternative
+alignments. Rows are flagged when the alternative-alignment estimate differs
+from the primary estimate by at least 0.10 absolute correlation units.
+
+```{r}
+#| label: tbl-alignment-distance-sensitivity
+#| tbl-cap: |
+#|   Matrix-only alignment sensitivity for sequence-derived distances.
+#|   Alternative ClustalW and ClustalOmega distance matrices are compared with
+#|   the primary MUSCLE ML-tree cophenetic distances.
+
+here::here("results", "Tables", "alignment-distance-sensitivity-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+The model-selection sensitivity compares FLU-family amino-acid model-test
+results across the primary and alternative alignments. A changed selected model
+is recorded, but it is only flagged as materially alignment-sensitive when the
+primary selected model's log-likelihood loss under the alternative alignment
+exceeds the same model-performance tolerance used for the primary
+common-versus-subtype model rule.
+
+```{r}
+#| label: tbl-alignment-model-sensitivity
+#| tbl-cap: |
+#|   Alignment sensitivity for FLU-family amino-acid model selection. The
+#|   primary selected model is flagged only when its loss under an alternative
+#|   alignment exceeds the approved model-performance tolerance.
+
+here::here("results", "Tables", "alignment-model-sensitivity-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 # Tree Model Selection
 
 For ML tree construction, the pipeline compares FLU-family amino-acid

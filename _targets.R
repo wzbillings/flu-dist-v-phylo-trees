@@ -63,6 +63,14 @@ list(
 		make_sequence_character_audit(list(h1 = h1_alignment, h3 = h3_alignment))
 	),
 	tar_target(
+		alignment_sensitivity_alignments,
+		calculate_alignment_sensitivity_alignments(clean_sequences, analysis_settings)
+	),
+	tar_target(
+		alignment_sensitivity_alignment_summary,
+		make_alignment_sensitivity_alignment_summary(alignment_sensitivity_alignments)
+	),
+	tar_target(
 		h1_protein_alignment_file,
 		write_rds_target(h1_alignment$protein_msa, "results/derived/h1-pro-alignment.rds"),
 		format = "file"
@@ -92,6 +100,14 @@ list(
 		write_rds_target(sequence_character_audit, "results/derived/sequence-character-audit.rds"),
 		format = "file"
 	),
+	tar_target(
+		alignment_sensitivity_alignment_summary_file,
+		write_rds_target(
+			alignment_sensitivity_alignment_summary,
+			"results/derived/alignment-sensitivity-alignment-summary.rds"
+		),
+		format = "file"
+	),
 	
 	# Sequence and cartography distance calculations.
 	tar_target(
@@ -110,6 +126,10 @@ list(
 	tar_target(
 		h3_distances,
 		calculate_subtype_distances(h3_alignment, h3_cartography_map, clean_sequences)
+	),
+	tar_target(
+		alignment_sensitivity_distances,
+		calculate_alignment_sensitivity_distances(alignment_sensitivity_alignments)
 	),
 	tar_target(distances_by_subtype, list(h1 = h1_distances, h3 = h3_distances)),
 	tar_target(distance_table, combine_distance_tables(distances_by_subtype, unique_pairs = TRUE)),
@@ -195,6 +215,19 @@ list(
 		)
 	),
 	tar_target(
+		alignment_sensitivity_model_tests,
+		calculate_alignment_sensitivity_model_tests(alignment_sensitivity_alignments, analysis_settings)
+	),
+	tar_target(
+		alignment_model_sensitivity,
+		calculate_alignment_model_sensitivity(
+			tree_model_tests,
+			alignment_sensitivity_model_tests,
+			tree_model_choice,
+			analysis_settings
+		)
+	),
+	tar_target(
 		h1_tree_analysis,
 		calculate_tree_analysis(
 			h1_alignment,
@@ -262,6 +295,14 @@ list(
 	tar_target(
 		tree_model_choice_file,
 		write_rds_target(tree_model_choice, "results/derived/tree-model-choice.rds"),
+		format = "file"
+	),
+	tar_target(
+		alignment_model_sensitivity_file,
+		write_rds_target(
+			alignment_model_sensitivity,
+			"results/derived/alignment-model-sensitivity.rds"
+		),
 		format = "file"
 	),
 	tar_target(
@@ -465,6 +506,15 @@ list(
 		)
 	),
 	tar_target(
+		alignment_distance_sensitivity,
+		calculate_alignment_distance_sensitivity(
+			distances_with_tree_by_subtype,
+			alignment_sensitivity_distances,
+			analysis_settings,
+			threshold = analysis_settings$influence_threshold
+		)
+	),
+	tar_target(
 		cophenetic_influence_summary_file,
 		write_rds_target(
 			cophenetic_influence_summary,
@@ -521,6 +571,22 @@ list(
 		format = "file"
 	),
 	tar_target(
+		alignment_distance_sensitivity_file,
+		write_rds_target(
+			alignment_distance_sensitivity,
+			"results/derived/alignment-distance-sensitivity.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		alignment_distance_sensitivity_table_file,
+		write_alignment_distance_sensitivity_table(
+			alignment_distance_sensitivity,
+			"results/Tables/alignment-distance-sensitivity-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
 		h1_ml_tree_plot_file,
 		write_ml_tree_plot(h1_tree_analysis, "results/Figures/h1-ml-tree.png", "H1N1"),
 		format = "file"
@@ -563,6 +629,14 @@ list(
 			tree_model_tests,
 			tree_model_choice,
 			"results/Tables/tree-model-selection-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		alignment_model_sensitivity_table_file,
+		write_alignment_model_sensitivity_table(
+			alignment_model_sensitivity,
+			"results/Tables/alignment-model-sensitivity-table.rds"
 		),
 		format = "file"
 	),
@@ -695,7 +769,11 @@ list(
 			complete_sequence_sensitivity_table_file,
 			sequence_missing_data_sensitivity_file,
 			sequence_missing_data_sensitivity_table_file,
+			alignment_distance_sensitivity_file,
+			alignment_distance_sensitivity_table_file,
 			model_selection_table_file,
+			alignment_model_sensitivity_file,
+			alignment_model_sensitivity_table_file,
 			strain_flow_table_file,
 			strain_accession_table_file,
 			strain_pair_count_table_file,

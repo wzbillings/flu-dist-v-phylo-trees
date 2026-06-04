@@ -21,6 +21,8 @@ The implemented tests cover fast deterministic behavior:
 - strain provenance, accession/source completeness, inclusion/exclusion flow
   summaries, and unique-pair count audit helpers;
 - protein-only alignment summaries and alignment-derived full-length checks;
+- alignment-method validation and matrix-only alignment sensitivity helpers,
+  including alternative-alignment distance estimates and model-selection flags;
 - p-epitope site lookup and basic p-epitope distance-matrix structure;
 - sequence character classification, p-epitope ambiguous-residue exclusion,
   complete-deletion alternatives for sequence-derived distances, and
@@ -71,8 +73,11 @@ Assumptions:
   source/accession completeness labels, inclusion/exclusion flow summaries, and
   unique off-diagonal pair-count audits with inline toy data.
 - `tests/testthat/test-alignment.R`: tests protein-only alignment audit
-  summaries and full-length checks computed from aligned non-gap protein
-  lengths.
+  summaries, full-length checks computed from aligned non-gap protein lengths,
+  and validation of supported `msa` alignment methods.
+- `tests/testthat/test-alignment-sensitivity.R`: tests matrix-only
+  alternative-alignment sensitivity summaries and model-selection sensitivity
+  flagging with inline toy distance matrices and model-test tables.
 - `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, vector normalization, shared-strain alignment, unique off-diagonal pair extraction, and small deterministic Mantel permutation result structures.
 - `tests/testthat/test-grantham-distance.R`: tests canonical Grantham matrix values, per-comparable-site averaging, explicit gap/ambiguous residue exclusion, and named symmetric matrix output.
 - `tests/testthat/test-p-epitope-calculator.R`: tests p-epitope site lookup, invalid subtype handling, and basic p-epitope distance-matrix properties.
