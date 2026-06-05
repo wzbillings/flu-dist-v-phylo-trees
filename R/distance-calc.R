@@ -126,7 +126,7 @@ combine_distance_tables <- function(distances_by_subtype, unique_pairs = TRUE) {
 
 normalize_distance_table <- function(distance_table) {
 	distance_table |>
-		dplyr::group_by(.data$subtype, .data$method) |>
+		dplyr::group_by(.data$method) |>
 		dplyr::mutate(d = normalize_vector(.data$d)) |>
 		dplyr::ungroup()
 }

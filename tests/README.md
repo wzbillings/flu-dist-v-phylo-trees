@@ -35,6 +35,9 @@ The implemented tests cover fast deterministic behavior:
 - strain-level bootstrap helper behavior for distance-correlation intervals;
 - Mantel matrix-comparison summaries that exclude diagonal and duplicate
   distance-matrix entries;
+- raw-versus-normalized distance handling guardrails, including raw
+  single-metric tree inputs, raw scale-invariant association summaries, and
+  labeled normalized visual/audit outputs;
 - leave-one-strain-out influence summaries, flags, and supplement-ready
   display helpers for matrix-association sensitivity analysis;
 - antigenic-cartography diagnostics extracted from stored `.ace` map inputs,
@@ -82,7 +85,7 @@ Assumptions:
 - `tests/testthat/test-alignment-sensitivity.R`: tests matrix-only
   alternative-alignment sensitivity summaries and model-selection sensitivity
   flagging with inline toy distance matrices and model-test tables.
-- `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, vector normalization, shared-strain alignment, unique off-diagonal pair extraction, and small deterministic Mantel permutation result structures.
+- `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, metric-level distance-table normalization, vector normalization, shared-strain alignment, unique off-diagonal pair extraction, and small deterministic Mantel permutation result structures.
 - `tests/testthat/test-grantham-distance.R`: tests canonical Grantham matrix values, per-comparable-site averaging, explicit gap/ambiguous residue exclusion, and named symmetric matrix output.
 - `tests/testthat/test-p-epitope-calculator.R`: tests p-epitope site lookup, invalid subtype handling, and basic p-epitope distance-matrix properties.
 - `tests/testthat/test-secondary-sequence-distance.R`: tests supplementary amino-acid Hamming, normalized optimal string alignment, p-all-epitope, BLOSUM62-derived distance matrices, and secondary sequence-distance sensitivity table construction.
@@ -93,10 +96,11 @@ Assumptions:
 - `tests/testthat/test-cartography-diagnostics.R`: tests pure helper behavior
   for `.ace`-derived map diagnostics, including titer missingness summaries,
   unavailable optimizer metadata reporting, and supplement-ready table labels.
-- `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, weighted correlations, Fisher/Wald confidence interval guardrails, strain-level bootstrap weighting helpers, manuscript-ready Mantel summary structure, tree-comparison table helpers, supplemental topology-distance table helpers, and model-selection summaries.
+- `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, raw descriptive distance-correlation inputs, supplement-ready raw-versus-normalized audit tables, weighted correlations, Fisher/Wald confidence interval guardrails, strain-level bootstrap weighting helpers, manuscript-ready Mantel summary structure, tree-comparison table helpers, supplemental topology-distance table helpers, and model-selection summaries.
 - `tests/testthat/test-tree-building.R`: tests ML-tree support and
   topology-stability helper behavior with toy `phylo` and `multiPhylo` objects,
-  avoiding expensive real-alignment bootstrap runs.
+  and verifies that neighbor-joining preparation preserves raw non-p-epitope
+  distance scales, avoiding expensive real-alignment bootstrap runs.
 - `tests/testthat/test-subtype-contrast.R`: tests toy-matrix subtype contrast estimates, Bayesian-bootstrap contrast interval structure, Fisher-z and permutation sensitivity summaries, and manuscript-ready subtype contrast table/plot constructors.
 - `tests/testthat/test-influence-analysis.R`: tests toy-matrix
   leave-one-strain-out influence estimates, influence flag validation, and

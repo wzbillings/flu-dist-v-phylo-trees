@@ -391,6 +391,15 @@ list(
 	),
 	
 	# Manuscript-ready figures and tables.
+	tar_target(distance_scale_audit, make_distance_scale_audit()),
+	tar_target(
+		distance_scale_audit_table_file,
+		write_distance_scale_audit_table(
+			distance_scale_audit,
+			"results/Tables/raw-vs-normalized-distance-handling-table.rds"
+		),
+		format = "file"
+	),
 	tar_target(
 		correlation_plot_file,
 		write_correlation_plot(

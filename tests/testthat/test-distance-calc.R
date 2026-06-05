@@ -54,6 +54,24 @@ test_that("combined distance tables preserve subtype and method labels", {
 	expect_equal(sort(unique(out$method)), c("grantham", "year"))
 })
 
+test_that("distance table normalization uses one scale per metric across subtypes", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+
+	distance_table <- tibble::tibble(
+		subtype = c("h1", "h1", "h3", "h3", "h1", "h3"),
+		method = c("year", "year", "year", "year", "cart", "cart"),
+		Var1 = c("b", "c", "b", "c", "b", "b"),
+		Var2 = c("a", "a", "a", "a", "a", "a"),
+		d = c(10, 20, 30, 40, 5, 15)
+	)
+
+	out <- normalize_distance_table(distance_table)
+
+	expect_equal(out$d[out$method == "year"], c(0, 1 / 3, 2 / 3, 1))
+	expect_equal(out$d[out$method == "cart"], c(0, 1))
+})
+
 test_that("distance matrix alignment uses shared strains and requires enough overlap", {
 	mat1 <- toy_distance_matrix(c("a", "b", "c"))
 	mat2 <- toy_distance_matrix(c("c", "b", "a"))

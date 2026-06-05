@@ -162,6 +162,68 @@ test_that("cophenetic Mantel summary reports overall and subtype-specific matrix
 	expect_s3_class(make_cophenetic_mantel_table(summary), "flextable")
 })
 
+test_that("descriptive cophenetic correlations use raw distance values", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+	skip_if_not_installed("tidyr")
+
+	pair_values <- tibble::tibble(
+		subtype = c("h1", "h1", "h3", "h3"),
+		Var1 = c("b", "c", "b", "c"),
+		Var2 = "a",
+		cophenetic = c(1, 2, 100, 110),
+		year = c(10, 20, 30, 40),
+		grantham = c(1, 2, 3, 4),
+		pepi = c(2, 3, 4, 5),
+		cart = c(5, 6, 7, 8)
+	)
+	full_distance_table <- pair_values |>
+		tidyr::pivot_longer(
+			cols = c("cophenetic", "year", "grantham", "pepi", "cart"),
+			names_to = "method",
+			values_to = "d"
+		)
+	settings <- make_analysis_settings("test")
+	settings$correlation_bootstrap_reps <- 5L
+
+	summary <- calculate_cophenetic_correlation_summary(full_distance_table, settings)
+	overall <- summary |>
+		dplyr::filter(.data$Comparison == "Temporal distance", .data$Scope == "Overall")
+
+	expect_equal(overall$`Pearson r`, stats::cor(c(1, 2, 100, 110), c(10, 20, 30, 40)))
+})
+
+test_that("distance scale audit is supplement-ready and labels normalized outputs", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+	skip_if_not_installed("flextable")
+
+	audit <- make_distance_scale_audit()
+
+	expect_true(all(c(
+		"Output",
+		"Reported statistic",
+		"Distance scale",
+		"Normalization scope",
+		"Reason",
+		"Supplement placement"
+	) %in% names(audit)))
+	expect_equal(
+		audit$`Distance scale`[audit$Output == "Neighbor-joining distance trees"],
+		"Raw distances"
+	)
+	expect_equal(
+		audit$`Distance scale`[audit$Output == "Correlation plot"],
+		"Min-max normalized distances"
+	)
+	expect_equal(
+		audit$`Normalization scope`[audit$Output == "Correlation plot"],
+		"By metric across all displayed unique off-diagonal pairs"
+	)
+	expect_true(all(audit$`Supplement placement` %in% c("Main text", "Supplement-ready audit")))
+	expect_s3_class(make_distance_scale_audit_table(audit), "flextable")
+})
+
 make_toy_tree_analysis <- function(subtype, sh_diffs, rf_distances, model_test = NULL) {
 	method_names <- c("ml", names(distance_method_labels()))
 	sh_test <- cbind(
