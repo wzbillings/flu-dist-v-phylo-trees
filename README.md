@@ -108,6 +108,22 @@ Sys.setenv(FLU_TARGETS_MODE = "full")
 targets::tar_make()
 ```
 
+From PowerShell, set the same environment variable for the current terminal
+session before launching R:
+
+```powershell
+$env:FLU_TARGETS_MODE = "full"
+Rscript -e "targets::tar_make()"
+```
+
+The full-mode setting applies only to the current R or terminal session unless
+you set the environment variable elsewhere. Full mode uses publication-scale
+stochastic and phylogenetic settings: 9,999 Mantel permutations, 4,000 Mantel
+bootstrap draws, 9,999 subtype-contrast permutations, 4,000 subtype-contrast
+bootstrap draws, 4,000 descriptive-correlation bootstrap draws, 1,000
+ML-tree-support bootstrap replicates, and 1,000,000 SH-test resamples.
+Expect full mode to run much longer than the default development pipeline.
+
 Rendered manuscript outputs are generated through pipeline targets from the
 Quarto sources in `products/`.
 

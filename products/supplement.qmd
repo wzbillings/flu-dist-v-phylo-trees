@@ -45,8 +45,31 @@ targets::tar_make()
 
 The pipeline defaults to `FLU_TARGETS_MODE=test`, which uses reduced stochastic
 settings for development checks. Publication-scale settings are selected by
-setting `FLU_TARGETS_MODE=full` before running the pipeline. The Mantel
-correlation table in the main manuscript is generated from
+setting `FLU_TARGETS_MODE=full` before running the pipeline. From an R session,
+run:
+
+```r
+Sys.setenv(FLU_TARGETS_MODE = "full")
+targets::tar_make()
+```
+
+From PowerShell, set the environment variable for the current terminal session
+before launching R:
+
+```powershell
+$env:FLU_TARGETS_MODE = "full"
+Rscript -e "targets::tar_make()"
+```
+
+The full-mode setting applies only to the current R or terminal session unless
+the environment variable is set elsewhere. Full mode uses publication-scale
+stochastic and phylogenetic settings: 9,999 Mantel permutations, 4,000 Mantel
+bootstrap draws, 9,999 subtype-contrast permutations, 4,000 subtype-contrast
+bootstrap draws, 4,000 descriptive-correlation bootstrap draws, 1,000
+ML-tree-support bootstrap replicates, and 1,000,000 SH-test resamples. These
+settings are expected to run much longer than the default development pipeline.
+
+The Mantel correlation table in the main manuscript is generated from
 `cophenetic_mantel_summary`, written to
 `results/derived/cophenetic-mantel-summary.rds`, and rendered as
 `results/Tables/distance-mantel-table.rds`.
