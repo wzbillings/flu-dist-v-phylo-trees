@@ -89,42 +89,6 @@ dist_amino_acid_hamming <- function(seqs) {
 	)
 }
 
-optimal_string_alignment_edit_count <- function(seq_1, seq_2) {
-	residues_1 <- split_residues(seq_1)
-	residues_2 <- split_residues(seq_2)
-	n <- length(residues_1)
-	m <- length(residues_2)
-	
-	d <- matrix(0L, nrow = n + 1L, ncol = m + 1L)
-	d[, 1] <- 0:n
-	d[1, ] <- 0:m
-	
-	if (n == 0 || m == 0) {
-		return(max(n, m))
-	}
-	
-	for (i in seq_len(n)) {
-		for (j in seq_len(m)) {
-			cost <- if (identical(residues_1[[i]], residues_2[[j]])) 0L else 1L
-			d[[i + 1L, j + 1L]] <- min(
-				d[[i, j + 1L]] + 1L,
-				d[[i + 1L, j]] + 1L,
-				d[[i, j]] + cost
-			)
-			if (
-				i > 1L &&
-					j > 1L &&
-					identical(residues_1[[i]], residues_2[[j - 1L]]) &&
-					identical(residues_1[[i - 1L]], residues_2[[j]])
-			) {
-				d[[i + 1L, j + 1L]] <- min(d[[i + 1L, j + 1L]], d[[i - 1L, j - 1L]] + 1L)
-			}
-		}
-	}
-	
-	d[[n + 1L, m + 1L]]
-}
-
 optimal_string_alignment_pair_distance <- function(seq_1, seq_2, site_mask = NULL) {
 	pairs <- comparable_residue_pairs(seq_1, seq_2, site_mask = site_mask)
 	if (pairs$n_comparable == 0) {
@@ -132,7 +96,7 @@ optimal_string_alignment_pair_distance <- function(seq_1, seq_2, site_mask = NUL
 	}
 	filtered_1 <- paste(pairs$residues_1, collapse = "")
 	filtered_2 <- paste(pairs$residues_2, collapse = "")
-	optimal_string_alignment_edit_count(filtered_1, filtered_2) / pairs$n_comparable
+	stringdist::stringdist(filtered_1, filtered_2, method = "osa") / pairs$n_comparable
 }
 
 dist_optimal_string_alignment <- function(seqs) {
@@ -224,22 +188,29 @@ blosum62_pair_distance <- function(
 		seq_1,
 		seq_2,
 		matrix = blosum62_substitution_matrix(),
+		diag_scores = diag(matrix),
 		site_mask = NULL
 	) {
 	pairs <- comparable_residue_pairs(seq_1, seq_2, site_mask = site_mask)
 	if (pairs$n_comparable == 0) {
 		return(NA_real_)
 	}
-	diag_scores <- diag(matrix)
 	scores <- matrix[cbind(pairs$residues_1, pairs$residues_2)]
 	distances <- diag_scores[pairs$residues_1] + diag_scores[pairs$residues_2] - 2 * scores
 	mean(distances)
 }
 
 dist_blosum62 <- function(seqs) {
+	substitution_matrix <- blosum62_substitution_matrix()
+	diag_scores <- diag(substitution_matrix)
 	secondary_sequence_distance_matrix(
 		seqs,
-		blosum62_pair_distance,
+		\(seq_1, seq_2) blosum62_pair_distance(
+			seq_1,
+			seq_2,
+			matrix = substitution_matrix,
+			diag_scores = diag_scores
+		),
 		label = "BLOSUM62 sequence"
 	)
 }
