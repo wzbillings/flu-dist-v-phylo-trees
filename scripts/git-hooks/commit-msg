@@ -45,8 +45,8 @@ readonly CONVENTIONAL_COMMIT_REGEX='^(feat|fix|docs|style|refactor|test|chore|bu
 
 # Read the first non-empty, non-comment line. Git comments begin with '#'.
 commit_subject="$(
-    grep --extended-regexp --invert-match '^[[:space:]]*(#|$)' "$COMMIT_MSG_FILE" \
-        | head -n 1
+	grep --extended-regexp --invert-match '^[[:space:]]*(#|$)' "$COMMIT_MSG_FILE" \
+		| head -n 1
 )"
 
 # Allow Git-generated merge commits and branch integration messages.
@@ -56,11 +56,11 @@ commit_subject="$(
 #   Merge branch 'main' into feature/foo
 #   Merge pull request #123 from example/branch
 if [[ "$commit_subject" =~ ^Merge[[:space:]] ]] || [[ "$commit_subject" =~ [[:space:]]into[[:space:]] ]]; then
-    exit 0
+	exit 0
 fi
 
 if [[ ! "$commit_subject" =~ $CONVENTIONAL_COMMIT_REGEX ]]; then
-    cat >&2 <<'EOF'
+	cat >&2 <<'EOF'
 ERROR: Commit message does not follow Conventional Commits 1.0.0 format.
 
 Expected subject-line format:
@@ -90,8 +90,8 @@ Examples:
 
 EOF
 
-    printf 'Received subject line:\n\n  %s\n\n' "$commit_subject" >&2
-    exit 1
+	printf 'Received subject line:\n\n  %s\n\n' "$commit_subject" >&2
+	exit 1
 fi
 
 exit 0

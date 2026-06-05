@@ -30,14 +30,14 @@ has_error=0
 # Check files staged for add, copy, modify, rename, or type change.
 # Use NUL delimiters so paths with spaces, quotes, or newlines are handled safely.
 while IFS= read -r -d '' file_path; do
-    # Skip paths that do not have a staged blob, such as unusual index states.
-    if ! file_size_bytes="$(git cat-file -s ":${file_path}" 2>/dev/null)"; then
-        continue
-    fi
+	# Skip paths that do not have a staged blob, such as unusual index states.
+	if ! file_size_bytes="$(git cat-file -s ":${file_path}" 2>/dev/null)"; then
+		continue
+	fi
 
-    if (( file_size_bytes >= MAX_FILE_SIZE_BYTES )); then
-        if (( has_error == 0 )); then
-            cat >&2 <<EOF
+	if (( file_size_bytes >= MAX_FILE_SIZE_BYTES )); then
+		if (( has_error == 0 )); then
+			cat >&2 <<EOF
 ERROR: Commit blocked because one or more staged files are ${MAX_FILE_SIZE_LABEL} or larger.
 
 Large files should not be committed directly to this repository.
@@ -47,17 +47,17 @@ from the commit before trying again.
 Files at or above the limit:
 
 EOF
-        fi
+		fi
 
-        printf '  - %s (%s bytes)\n' "$file_path" "$file_size_bytes" >&2
-        has_error=1
-    fi
+		printf '  - %s (%s bytes)\n' "$file_path" "$file_size_bytes" >&2
+		has_error=1
+	fi
 done < <(
-    git diff --cached --name-only -z --diff-filter=ACMRT
+	git diff --cached --name-only -z --diff-filter=ACMRT
 )
 
 if (( has_error != 0 )); then
-    cat >&2 <<'EOF'
+	cat >&2 <<'EOF'
 
 To unstage a file:
 
@@ -70,7 +70,7 @@ To remove a file from the repository but keep it locally:
 Commit aborted.
 EOF
 
-    exit 1
+	exit 1
 fi
 
 exit 0
