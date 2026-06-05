@@ -4,6 +4,47 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-05 - Rank-Based Mantel and Descriptive Spearman Sensitivity
+
+**Decision:** Add rank-based Spearman Mantel correlations and descriptive
+Spearman correlations as supplement-reported sensitivity analyses for monotonic
+but nonlinear relationships between ML-tree cophenetic distance and the four
+primary candidate distance metrics. Keep Pearson-based Mantel correlations as
+the primary distance-matrix estimand. Do not reinterpret or strengthen main
+manuscript claims from the rank-based outputs unless ZB reviews the regenerated
+results and approves a claim change.
+
+For the rank-based Mantel sensitivity, use the same unique off-diagonal
+strain-pair representation, subtype-stratified overall matrix-label
+permutation scheme, random seed conventions, and test/full Mantel permutation
+settings as the primary Mantel table. Estimate intervals with the same
+strain-unit bootstrap settings used for the existing Mantel and descriptive
+correlation intervals; for Spearman rows, compute the bootstrap statistic as a
+weighted correlation of rank-transformed pairwise distances.
+
+**Rationale:** The primary Mantel table evaluates linear matrix association on
+the raw distance scales, while rank-based Spearman summaries check whether the
+qualitative association pattern is robust to monotonic but nonlinear
+relationships. Keeping rank-based outputs supplement-only avoids changing the
+primary estimand or over-expanding the main result set.
+
+**Evidence / citation:** ZB approval in chat on 2026-06-05; implementation in
+`R/plots-and-tables.R`, `_targets.R`, `R/manuscript.R`,
+`products/manuscript.qmd`, `products/supplement.qmd`, and related tests.
+
+**Alternatives considered:** Report Spearman Mantel only without descriptive
+Spearman; omit bootstrap intervals for rank-based outputs; promote rank-based
+results to the main table or main table footnote; or interpret rank-based
+changes as updated manuscript conclusions. ZB requested descriptive Spearman
+and bootstrap intervals. Main-table promotion and interpretation changes were
+deferred to preserve the current primary analysis framing.
+
+**Impact:** The supplement should include a rank-based Mantel sensitivity table
+and a descriptive Spearman correlation table. Full-mode regeneration is needed
+before publication-scale interpretation. Rank-based results are sensitivity
+analyses and require human review before changing the manuscript's scientific
+claims.
+
 ## 2026-06-05 - Raw and Normalized Distance Handling
 
 **Decision:** Use raw distances for analyses where one distance metric is used

@@ -50,6 +50,10 @@ correlation table in the main manuscript is generated from
 `cophenetic_mantel_summary`, written to
 `results/derived/cophenetic-mantel-summary.rds`, and rendered as
 `results/Tables/distance-mantel-table.rds`.
+Rank-based Mantel sensitivity results are generated from
+`cophenetic_spearman_mantel_summary`, written to
+`results/derived/cophenetic-spearman-mantel-summary.rds`, and rendered as
+`results/Tables/distance-spearman-mantel-sensitivity-table.rds`.
 
 The raw sequence input is `data/UGAFluVac-sequences.csv`, a protein-sequence
 source table with strain names, short names, source databases, accession
@@ -341,6 +345,15 @@ strain units and are separate from the permutation p-values. We do not report
 Bayesian-bootstrap tail probabilities as p-values because the permutation
 p-values are the pre-specified apparent-sample test for matrix correspondence.
 
+As a sensitivity analysis for monotonic but nonlinear relationships, we also
+compute rank-based Spearman Mantel correlations. These use the same unique
+off-diagonal strain-pair representation, subtype-stratified overall
+permutation scheme, and strain-level bootstrap interval settings as the primary
+Mantel table, but the observed and permuted correlations are computed on ranks.
+Rank-based results are reported as sensitivity analyses only; they should not
+be used to replace the primary Mantel estimand or to strengthen manuscript
+claims without additional human review.
+
 ```{r}
 #| label: tbl-mantel-settings
 #| tbl-cap: |
@@ -368,6 +381,42 @@ here::here("results", "derived", "cophenetic-mantel-summary.rds") |>
 #|   Main Mantel correlation table reproduced for reference.
 
 here::here("results", "Tables", "distance-mantel-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+## Rank-Based Mantel Sensitivity
+
+```{r}
+#| label: tbl-spearman-mantel-settings
+#| tbl-cap: |
+#|   Rank-based Mantel sensitivity computation settings. Seeds are row-specific
+#|   so that each comparison and reporting scope is reproducible.
+
+here::here("results", "derived", "cophenetic-spearman-mantel-summary.rds") |>
+	readr::read_rds() |>
+	dplyr::select(
+		"Comparison",
+		"Scope",
+		"Correlation method",
+		"Permutations",
+		"Bootstrap draws",
+		"CI method",
+		"Permutation seed",
+		"Bootstrap seed"
+	) |>
+	flextable::flextable() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-spearman-mantel-sensitivity
+#| tbl-cap: |
+#|   Spearman rank-based Mantel sensitivity table. These results evaluate
+#|   monotonic association between each distance metric and ML-tree cophenetic
+#|   distance and do not replace the primary Mantel table.
+
+here::here("results", "Tables", "distance-spearman-mantel-sensitivity-table.rds") |>
 	readr::read_rds() |>
 	fit_flextable_to_page()
 ```
@@ -447,13 +496,20 @@ here::here("results", "Tables", "subtype-mantel-contrast-sensitivity-table.rds")
 	fit_flextable_to_page()
 ```
 
-## Descriptive Pearson Correlations
+## Descriptive Pearson and Spearman Correlations
 
 The Pearson correlations in @tbl-pearson-correlations are descriptive summaries
 of the same unique off-diagonal pair representation used for the Mantel
 analysis. They are included to help interpret the approximate linear agreement
 between distance scales, but they are not used as independent-observation
 inference.
+
+The Spearman correlations in @tbl-spearman-correlations are parallel
+descriptive sensitivity summaries for monotonic association. They use the same
+strain-level bootstrap interval settings as the Pearson table, with the
+correlation statistic computed on ranks. They are reported only to check
+whether qualitative patterns depend on the linearity assumption implicit in
+Pearson correlation.
 
 ```{r}
 #| label: tbl-pearson-correlations
@@ -463,6 +519,19 @@ inference.
 #|   strain-level bootstrap intervals and should be interpreted descriptively.
 
 here::here("results", "Tables", "descriptive-pearson-distance-correlation-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-spearman-correlations
+#| tbl-cap: |
+#|   Descriptive Spearman rank correlations between each distance metric and
+#|   ML-tree cophenetic distance, overall and by subtype. Intervals are
+#|   strain-level bootstrap intervals and should be interpreted as sensitivity
+#|   summaries for monotonic association.
+
+here::here("results", "Tables", "descriptive-spearman-distance-correlation-table.rds") |>
 	readr::read_rds() |>
 	fit_flextable_to_page()
 ```

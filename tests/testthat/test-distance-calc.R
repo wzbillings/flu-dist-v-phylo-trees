@@ -123,6 +123,39 @@ test_that("mantel_permutation_test returns deterministic result structure", {
 	expect_error(mantel_permutation_test(mat1, mat2, permutations = 0), "positive numeric scalar")
 })
 
+test_that("mantel permutation tests honor the requested correlation method", {
+	skip_if_not_installed("tibble")
+
+	make_mat <- function(values) {
+		mat <- matrix(0, nrow = 4, ncol = 4, dimnames = list(letters[1:4], letters[1:4]))
+		mat[lower.tri(mat)] <- values
+		mat + t(mat)
+	}
+	cophenetic <- make_mat(c(1, 2, 3, 4, 5, 6))
+	nonlinear <- make_mat(c(1, 4, 9, 16, 25, 36))
+
+	pearson <- mantel_permutation_test(cophenetic, nonlinear, permutations = 9, seed = 123, method = "pearson")
+	spearman <- mantel_permutation_test(cophenetic, nonlinear, permutations = 9, seed = 123, method = "spearman")
+	stratified <- stratified_mantel_permutation_test(
+		list(
+			h1 = list(cophenetic = cophenetic, year = nonlinear),
+			h3 = list(cophenetic = cophenetic, year = nonlinear)
+		),
+		"cophenetic",
+		"year",
+		permutations = 9,
+		seed = 123,
+		method = "spearman"
+	)
+
+	expect_equal(pearson$method, "mantel_pearson")
+	expect_equal(spearman$method, "mantel_spearman")
+	expect_equal(stratified$method, "stratified_mantel_spearman")
+	expect_lt(pearson$estimate, spearman$estimate)
+	expect_equal(spearman$estimate, 1)
+	expect_equal(stratified$estimate, 1)
+})
+
 test_that("stratified Mantel permutation combines subtype-specific unique pairs", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("purrr")

@@ -69,11 +69,14 @@ render_quarto_supplement <- function(
 		qmd_path,
 		mantel_summary_file,
 		mantel_correlation_table_file,
+		spearman_mantel_summary_file,
+		spearman_mantel_table_file,
 		subtype_contrast_summary_file,
 		subtype_contrast_table_file,
 		subtype_contrast_sensitivity_file,
 		subtype_contrast_sensitivity_table_file,
 		pearson_correlation_table_file,
+		spearman_correlation_table_file,
 		influence_summary_file,
 		influence_table_file,
 		influence_plot_file,
@@ -106,11 +109,14 @@ render_quarto_supplement <- function(
 	validate_file_exists(qmd_path, "supplement qmd")
 	validate_file_exists(mantel_summary_file, "Mantel distance correlation summary")
 	validate_file_exists(mantel_correlation_table_file, "Mantel distance correlation table")
+	validate_file_exists(spearman_mantel_summary_file, "Spearman Mantel sensitivity summary")
+	validate_file_exists(spearman_mantel_table_file, "Spearman Mantel sensitivity table")
 	validate_file_exists(subtype_contrast_summary_file, "subtype contrast summary")
 	validate_file_exists(subtype_contrast_table_file, "subtype contrast table")
 	validate_file_exists(subtype_contrast_sensitivity_file, "subtype contrast sensitivity summary")
 	validate_file_exists(subtype_contrast_sensitivity_table_file, "subtype contrast sensitivity table")
 	validate_file_exists(pearson_correlation_table_file, "descriptive Pearson distance correlation table")
+	validate_file_exists(spearman_correlation_table_file, "descriptive Spearman distance correlation table")
 	validate_file_exists(influence_summary_file, "leave-one-strain-out influence summary")
 	validate_file_exists(influence_table_file, "leave-one-strain-out influence table")
 	validate_file_exists(influence_plot_file, "leave-one-strain-out influence plot")
