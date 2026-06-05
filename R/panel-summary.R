@@ -12,6 +12,9 @@ validate_vaccine_strain_source <- function(vaccine_source) {
 	if (!is.logical(vaccine_source$excluded_from_high_dose)) {
 		stop("excluded_from_high_dose must be logical.", call. = FALSE)
 	}
+	if (any(is.na(vaccine_source$excluded_from_high_dose))) {
+		stop("excluded_from_high_dose must not contain missing values.", call. = FALSE)
+	}
 	invisible(vaccine_source)
 }
 
@@ -45,7 +48,7 @@ make_high_dose_formulation_summary <- function(vaccine_source) {
 		dplyr::group_by(.data$season) |>
 		dplyr::summarise(
 			high_dose_formulation = dplyr::if_else(
-				any(.data$excluded_from_high_dose),
+				any(.data$excluded_from_high_dose, na.rm = TRUE),
 				"trivalent",
 				"quadrivalent"
 			),
@@ -292,7 +295,10 @@ make_panel_space_coverage <- function(full_distance_table, cartography_diagnosti
 make_panel_temporal_coverage_plot_data <- function(panel_strain_status) {
 	check_required_columns(
 		panel_strain_status,
-		c("subtype_label", "short_name", "isolation_year", "is_vaccine_component"),
+		c(
+			"subtype", "subtype_label", "short_name", "isolation_year",
+			"is_vaccine_component", "vaccine_seasons"
+		),
 		"panel strain status"
 	)
 	panel_strain_status |>

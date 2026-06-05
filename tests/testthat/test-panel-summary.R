@@ -42,11 +42,18 @@ test_that("vaccine source validation requires canonical columns and logical high
 		validate_vaccine_strain_source(dplyr::mutate(source, excluded_from_high_dose = "False")),
 		"excluded_from_high_dose must be logical"
 	)
+	source_with_missing <- source
+	source_with_missing$excluded_from_high_dose[1] <- NA
+	expect_error(
+		validate_vaccine_strain_source(source_with_missing),
+		"excluded_from_high_dose must not contain missing values"
+	)
 })
 
 test_that("vaccine source records classify high-dose formulation and match standardized panel names", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")
+	skip_if_not_installed("stringr")
 
 	source <- toy_panel_vaccine_source()
 	panel <- toy_panel_strain_provenance()
@@ -75,6 +82,7 @@ test_that("vaccine source records classify high-dose formulation and match stand
 test_that("panel strain status summarizes vaccine seasons for included strains", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")
+	skip_if_not_installed("stringr")
 
 	vaccine_records <- make_vaccine_strain_records(
 		toy_panel_vaccine_source(),
@@ -92,6 +100,7 @@ test_that("panel strain status summarizes vaccine seasons for included strains",
 test_that("panel summary reports subtype counts, vaccine counts, and pair completeness", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")
+	skip_if_not_installed("stringr")
 
 	vaccine_records <- make_vaccine_strain_records(
 		toy_panel_vaccine_source(),
@@ -147,6 +156,7 @@ test_that("panel space coverage summarizes cartographic and phylogenetic ranges"
 test_that("temporal coverage plot data uses stable vaccine-component labels", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")
+	skip_if_not_installed("stringr")
 
 	vaccine_records <- make_vaccine_strain_records(
 		toy_panel_vaccine_source(),
@@ -161,4 +171,8 @@ test_that("temporal coverage plot data uses stable vaccine-component labels", {
 	)
 	expect_equal(plot_data$subtype_label, c("H1N1", "H1N1", "H3N2", "H3N2", "H3N2"))
 	expect_equal(plot_data$isolation_year, c(2015L, 2018L, 2016L, 2019L, 1968L))
+	expect_error(
+		make_panel_temporal_coverage_plot_data(dplyr::select(status, -"vaccine_seasons")),
+		"panel strain status is missing required column\\(s\\): vaccine_seasons"
+	)
 })
