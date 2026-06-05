@@ -131,6 +131,10 @@ list(
 		alignment_sensitivity_distances,
 		calculate_alignment_sensitivity_distances(alignment_sensitivity_alignments)
 	),
+	tar_target(
+		secondary_sequence_distances,
+		calculate_secondary_sequence_distances(list(h1 = h1_alignment, h3 = h3_alignment))
+	),
 	tar_target(distances_by_subtype, list(h1 = h1_distances, h3 = h3_distances)),
 	tar_target(distance_table, combine_distance_tables(distances_by_subtype, unique_pairs = TRUE)),
 	tar_target(distance_table_normalized, normalize_distance_table(distance_table)),
@@ -172,6 +176,11 @@ list(
 	tar_target(
 		distance_comparison_file,
 		write_rds_target(distance_comparisons, "results/derived/distance-comparisons.rds"),
+		format = "file"
+	),
+	tar_target(
+		secondary_sequence_distance_file,
+		write_rds_target(secondary_sequence_distances, "results/derived/secondary-sequence-distances.rds"),
 		format = "file"
 	),
 	tar_target(
@@ -515,6 +524,15 @@ list(
 		)
 	),
 	tar_target(
+		secondary_sequence_distance_sensitivity,
+		calculate_secondary_sequence_distance_sensitivity(
+			distances_with_tree_by_subtype,
+			secondary_sequence_distances,
+			analysis_settings,
+			threshold = analysis_settings$influence_threshold
+		)
+	),
+	tar_target(
 		cophenetic_influence_summary_file,
 		write_rds_target(
 			cophenetic_influence_summary,
@@ -583,6 +601,22 @@ list(
 		write_alignment_distance_sensitivity_table(
 			alignment_distance_sensitivity,
 			"results/Tables/alignment-distance-sensitivity-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		secondary_sequence_distance_sensitivity_file,
+		write_rds_target(
+			secondary_sequence_distance_sensitivity,
+			"results/derived/secondary-sequence-distance-sensitivity.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		secondary_sequence_distance_sensitivity_table_file,
+		write_secondary_sequence_distance_sensitivity_table(
+			secondary_sequence_distance_sensitivity,
+			"results/Tables/secondary-sequence-distance-sensitivity-table.rds"
 		),
 		format = "file"
 	),
@@ -769,6 +803,8 @@ list(
 			complete_sequence_sensitivity_table_file,
 			sequence_missing_data_sensitivity_file,
 			sequence_missing_data_sensitivity_table_file,
+			secondary_sequence_distance_sensitivity_file,
+			secondary_sequence_distance_sensitivity_table_file,
 			alignment_distance_sensitivity_file,
 			alignment_distance_sensitivity_table_file,
 			model_selection_table_file,

@@ -221,6 +221,16 @@ alignments and flag cases where the primary selected model is no longer within
 the approved model-performance tolerance. These outputs are reported in the
 supplement.
 
+We also computed supplementary secondary sequence-distance metrics: amino-acid
+Hamming distance, normalized optimal string alignment distance,
+$p$-all-epitope distance, and a BLOSUM62-derived dissimilarity. These metrics
+are intended to complement, not replace, the primary temporal, Grantham,
+$p$-Epitope, and cartographic comparisons. They are reported in the supplement
+as sensitivity outputs only; because the current regenerated outputs use
+test-mode settings, we do not interpret the secondary-metric results here.
+Unless full-mode outputs show a major difference, these secondary distances
+will not be used to build distance-based neighbor-joining trees.
+
 The cartographic Mantel correlation for H1N1 is also moderate, indicating that
 the evolutionary pattern of H1N1 strains does not necessarily explain variation
 in observed immune responses. For H3N2, the cartographic correlation was the

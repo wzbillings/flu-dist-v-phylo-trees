@@ -24,6 +24,10 @@ The implemented tests cover fast deterministic behavior:
 - alignment-method validation and matrix-only alignment sensitivity helpers,
   including alternative-alignment distance estimates and model-selection flags;
 - p-epitope site lookup and basic p-epitope distance-matrix structure;
+- supplementary secondary sequence-distance metrics, including amino-acid
+  Hamming distance, normalized optimal string alignment distance,
+  p-all-epitope distance, BLOSUM62-derived dissimilarity, and their
+  supplement-ready sensitivity table helper;
 - sequence character classification, p-epitope ambiguous-residue exclusion,
   complete-deletion alternatives for sequence-derived distances, and
   complete-sequence-only matrix-sensitivity helpers;
@@ -81,6 +85,7 @@ Assumptions:
 - `tests/testthat/test-distance-calc.R`: tests distance-set validation, distance-matrix ordering, combined distance tables, vector normalization, shared-strain alignment, unique off-diagonal pair extraction, and small deterministic Mantel permutation result structures.
 - `tests/testthat/test-grantham-distance.R`: tests canonical Grantham matrix values, per-comparable-site averaging, explicit gap/ambiguous residue exclusion, and named symmetric matrix output.
 - `tests/testthat/test-p-epitope-calculator.R`: tests p-epitope site lookup, invalid subtype handling, and basic p-epitope distance-matrix properties.
+- `tests/testthat/test-secondary-sequence-distance.R`: tests supplementary amino-acid Hamming, normalized optimal string alignment, p-all-epitope, BLOSUM62-derived distance matrices, and secondary sequence-distance sensitivity table construction.
 - `tests/testthat/test-sequence-sensitivity-audit.R`: tests aligned sequence
   character classification, complete-sequence-only matrix sensitivity, and
   pairwise-deletion versus complete-deletion missing-data sensitivity on toy
