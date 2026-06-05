@@ -197,3 +197,23 @@ test_that("ML support bootstrap runs with evaluated optNni settings", {
 	expect_s3_class(bootstrap_trees, "multiPhylo")
 	expect_equal(length(bootstrap_trees), 1)
 })
+
+test_that("neighbor-joining preparation preserves raw single-metric distances", {
+	raw_year <- matrix(
+		c(0, 10, 20, 10, 0, 30, 20, 30, 0),
+		nrow = 3,
+		dimnames = list(c("a", "b", "c"), c("a", "b", "c"))
+	)
+	raw_grantham <- raw_year * 4
+	settings <- make_analysis_settings("test")
+
+	prepared <- prepare_distances_for_tree_building(
+		list(year = raw_year, grantham = raw_grantham),
+		settings
+	)
+
+	expect_equal(prepared$year, raw_year)
+	expect_equal(prepared$grantham, raw_grantham)
+	expect_gt(max(prepared$year), 1)
+	expect_gt(max(prepared$grantham), 1)
+})

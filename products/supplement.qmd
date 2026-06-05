@@ -326,6 +326,14 @@ unique off-diagonal strain pairs. Duplicate symmetric distances and diagonal
 self-comparisons are excluded before estimating the observed correlation,
 Bayesian bootstrap interval, and matrix-permutation p-value.
 
+All distance-matrix association, subtype-contrast, influence, and
+distance-tree analyses use raw distance values unless a result is explicitly
+labeled as normalized. Min-max normalized distances are used only for labeled
+visual or audit outputs where distances with different units need a common
+display scale. The pipeline includes a supplement-ready raw-versus-normalized
+handling audit target that can be added here if requested by a reviewer; no
+additional normalized sensitivity analysis is reported in this manuscript pass.
+
 For the overall rows, permutation is stratified by subtype: H1N1 and H3N2 labels
 are permuted within subtype, then the unique-pair vectors are concatenated for
 the overall Mantel statistic. Bayesian bootstrap intervals are resampled over

@@ -4,6 +4,51 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-05 - Raw and Normalized Distance Handling
+
+**Decision:** Use raw distances for analyses where one distance metric is used
+at a time, including neighbor-joining tree construction. For cross-metric
+comparisons, keep raw distances when the statistic is scale-invariant, including
+Mantel correlations, descriptive Pearson correlations, subtype Mantel-r
+contrasts, leave-one-strain-out correlation changes, and alignment or
+secondary-distance correlation-change sensitivity summaries. Use min-max
+normalized distances only for explicitly labeled visual or audit outputs where
+scale differences would otherwise affect display or interpretation. When
+normalization is used, normalize by distance metric across all displayed or
+audited unique off-diagonal strain pairs, not separately by subtype.
+
+Normalized sensitivity analyses are not reported in the current manuscript pass.
+Instead, maintain an audit record and supplement-ready table so normalized
+handling can be documented in the supplement if requested by a reviewer.
+
+**Rationale:** Single-metric analyses do not compare across distance units, so
+normalizing before tree construction would change the input scale without
+answering the scientific question. Correlation-based cross-metric summaries are
+invariant to positive linear rescaling, so raw inputs preserve provenance
+without changing the statistic. Normalization is useful for Figure 1-style
+visual comparison because temporal, sequence, cartographic, and tree distances
+have different units and ranges.
+
+**Evidence / citation:** ZB approval in chat on 2026-06-05; implementation in
+`R/distance-calc.R`, `R/plots-and-tables.R`, `_targets.R`,
+`docs/raw-vs-normalized-distance-handling.md`, `products/manuscript.qmd`, and
+related tests.
+
+**Alternatives considered:** Report normalized sensitivity analyses immediately,
+normalize separately by subtype and metric, or use a single global
+normalization across all metrics. Normalized sensitivity analyses were deferred
+because the approved current need is an audit, not an additional results
+family. Subtype-specific normalization was rejected because it would erase
+within-metric cross-subtype range differences in displays. Global
+all-metric normalization was rejected because larger-unit metrics would dominate
+the scale and obscure smaller-range metrics.
+
+**Impact:** Raw and normalized outputs must be clearly labeled. Figure 1 and
+the normalized distance-table artifact are visual/audit products, not inputs to
+the primary Mantel, Pearson, subtype-contrast, influence, sensitivity, or
+neighbor-joining analyses. The audit table can be added to the supplement if a
+reviewer requests explicit raw-versus-normalized reporting.
+
 ## 2026-06-04 - Supplementary Secondary Sequence-Distance Metrics
 
 **Decision:** Add supplementary-only secondary sequence-distance metrics for

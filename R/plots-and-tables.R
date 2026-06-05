@@ -45,6 +45,92 @@ normalize_distances_for_plot <- function(full_distance_table) {
 		dplyr::ungroup()
 }
 
+make_distance_scale_audit <- function() {
+	tibble::tribble(
+		~Output, ~`Reported statistic`, ~`Distance scale`, ~`Normalization scope`, ~Reason, ~`Supplement placement`,
+		"Source distance matrices",
+		"Temporal, Grantham, p-Epitope, cartographic, and ML-tree cophenetic distances",
+		"Raw distances",
+		"None",
+		"These are the metric-specific analysis inputs and preserve each method's original unit or branch-length scale.",
+		"Supplement-ready audit",
+		"Neighbor-joining distance trees",
+		"Distance-derived tree topologies and likelihood/topology comparison summaries",
+		"Raw distances",
+		"None",
+		"Each tree is built from one metric at a time, so cross-metric scale differences do not enter the tree construction. The p-Epitope matrix may receive the existing tiny seeded tie-breaking perturbation, but it is not min-max normalized.",
+		"Main text",
+		"Main Mantel correlation table",
+		"Mantel r, matrix-permutation p-values, and strain-bootstrap intervals",
+		"Raw distances",
+		"None",
+		"Mantel r is a correlation statistic and is invariant to positive linear rescaling of either distance matrix.",
+		"Main text",
+		"Subtype contrast table and plot",
+		"H3N2 minus H1N1 Mantel-r contrasts",
+		"Raw distances",
+		"None",
+		"The contrast is computed on subtype-specific correlation estimates, which are scale-invariant within each matrix comparison.",
+		"Main text",
+		"Descriptive Pearson correlation table",
+		"Pearson r and strain-bootstrap intervals",
+		"Raw distances",
+		"None",
+		"Pearson r is scale-invariant under positive linear transformations, so normalization would not be needed for the statistic and raw inputs keep provenance clear.",
+		"Supplement-ready audit",
+		"Leave-one-strain-out influence",
+		"Mantel-r and descriptive Pearson-r point-estimate changes",
+		"Raw distances",
+		"None",
+		"The influence summaries compare correlation estimates after removing one strain from the existing raw matrices.",
+		"Supplement-ready audit",
+		"Alignment and sequence sensitivity",
+		"Correlation-estimate changes, distance-matrix correlations, and within-metric absolute distance changes",
+		"Raw distances",
+		"None",
+		"Association changes are correlation-based; scale-sensitive absolute distance changes are reported only within the same distance metric.",
+		"Supplement-ready audit",
+		"Secondary sequence-distance sensitivity",
+		"Correlation-estimate changes versus primary sequence-distance comparators",
+		"Raw distances",
+		"None",
+		"Secondary metrics are compared through scale-invariant association estimates and are not used for distance-tree construction in the current analysis.",
+		"Supplement-ready audit",
+		"Correlation plot",
+		"Unique-pair scatterplot axes",
+		"Min-max normalized distances",
+		"By metric across all displayed unique off-diagonal pairs",
+		"Normalization is used only to display differently scaled metrics on comparable 0-1 axes; the figure caption and axis labels identify the normalized scale.",
+		"Main text",
+		"Normalized distance-table artifact",
+		"`distance_table_normalized` and `dist-df-normalized.rds`",
+		"Min-max normalized distances",
+		"By metric across all unique off-diagonal pairs",
+		"This derived artifact supports labeled visual or audit use only and is not the input for raw-distance analyses.",
+		"Supplement-ready audit"
+	)
+}
+
+make_distance_scale_audit_table <- function(distance_scale_audit = make_distance_scale_audit()) {
+	distance_scale_audit |>
+		flextable::flextable() |>
+		flextable::merge_v(j = "Distance scale") |>
+		flextable::valign(j = "Distance scale", valign = "top") |>
+		flextable::fix_border_issues() |>
+		flextable::autofit() |>
+		flextable::set_caption(paste0(
+			"Audit of raw and normalized distance handling. Raw distances are ",
+			"used for one-metric-at-a-time analyses and for scale-invariant ",
+			"cross-metric statistics; normalized distances are used only for ",
+			"explicitly labeled visual or audit outputs."
+		))
+}
+
+write_distance_scale_audit_table <- function(distance_scale_audit, path) {
+	make_distance_scale_audit_table(distance_scale_audit) |>
+		write_rds_target(path)
+}
+
 plot_tree_distance_correlations <- function(
 		full_distance_table,
 		settings = make_analysis_settings()

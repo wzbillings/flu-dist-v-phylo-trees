@@ -104,6 +104,10 @@ $p$-Epitope, and cartography) using Mantel correlations with matrix
 permutation p-values [@legendre2010MantelAlternatives;
 @legendre2015ShouldMantel]. These comparisons used only unique off-diagonal
 strain pairs, excluding duplicate symmetric distances and self-comparisons.
+All distance-matrix associations and distance-tree analyses used raw distance
+values unless explicitly labeled as normalized. We used min-max normalization
+only for labeled visual or audit outputs where metrics with different units
+needed to be displayed on a common 0--1 scale.
 We estimated 95% intervals for the Mantel statistic using Bayesian bootstrap
 resampling over strain units [@rubin1981]. To quantify subtype differences,
 we subtracted the H1N1 Mantel correlation from the H3N2 Mantel correlation for
@@ -144,8 +148,9 @@ weak for H1N1.
 #| label: fig-corr
 #| fig-cap: |
 #|   Scatterplots showing min-max normalized cophenetic tree distance on the
-#|   x-axis and each min-max normalized distance metric on the y-axis. Points
-#|   are unique off-diagonal strain pairs and are colored by subtype.
+#|   x-axis and each min-max normalized distance metric on the y-axis.
+#|   Normalization is by metric across all displayed unique off-diagonal
+#|   strain pairs. Points are colored by subtype.
 
 knitr::include_graphics(here::here("results", "Figures", "corr-plot.png"))
 ```
