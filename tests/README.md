@@ -20,6 +20,9 @@ The implemented tests cover fast deterministic behavior:
   inclusion, and sequence-cleaning audits;
 - strain provenance, accession/source completeness, inclusion/exclusion flow
   summaries, and unique-pair count audit helpers;
+- strain-panel coverage summaries, Fluzone vaccine-component matching,
+  high-dose formulation classification, panel space-coverage summaries, and
+  temporal coverage plot data;
 - protein-only alignment summaries and alignment-derived full-length checks;
 - alignment-method validation and matrix-only alignment sensitivity helpers,
   including alternative-alignment distance estimates and model-selection flags;
@@ -80,6 +83,11 @@ Assumptions:
 - `tests/testthat/test-provenance-audit.R`: tests strain provenance records,
   source/accession completeness labels, inclusion/exclusion flow summaries, and
   unique off-diagonal pair-count audits with inline toy data.
+- `tests/testthat/test-panel-summary.R`: tests Fluzone vaccine-strain source
+  validation, high-dose formulation classification, exact standardized
+  short-name matching, unmatched vaccine-source records, panel summaries,
+  cartographic/phylogenetic space-coverage summaries, and temporal coverage
+  plot data.
 - `tests/testthat/test-alignment.R`: tests protein-only alignment audit
   summaries, full-length checks computed from aligned non-gap protein lengths,
   and validation of supported `msa` alignment methods.

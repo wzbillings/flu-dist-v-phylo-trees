@@ -4,6 +4,46 @@ This log records consequential research, analysis, reproducibility, and
 publication decisions for the influenza distance-metrics manuscript project.
 Entries are based on documented human responses unless otherwise stated.
 
+## 2026-06-05 - Strain-Panel Coverage and Generalizability Summary
+
+**Decision:** Add panel-summary outputs that describe the expert-selected
+H1N1/H3N2 analysis panel by subtype, isolation year, cohort-season Fluzone
+vaccine-component status, unique off-diagonal pair counts, temporal span, and
+available cartographic/phylogenetic distance coverage. The panel may be
+described as expert-selected to span historical H1N1/H3N2 antigenic space, but
+the manuscript must state that it is not a representative survey of all
+influenza strains, cohorts, or eras.
+
+Use `data/fluzone_vaccine_strains_by_season.csv` as the canonical source for
+Fluzone vaccine components during the cohort-study seasons. One-time permission
+was granted to standardize the source short names `SG/16` to `Sing/16` and
+`BR/18` to `Bris/18`; after that edit, the file returns to read-only source
+status. Seasons with any `excluded_from_high_dose = TRUE` component are treated
+as trivalent high-dose Fluzone seasons; seasons with no excluded components are
+treated as quadrivalent high-dose Fluzone seasons.
+
+**Rationale:** The manuscript needs an auditable panel description so readers
+can see how much of the H1N1/H3N2 historical and vaccine-component space is
+covered without implying representative sampling. The vaccine-status definition
+is limited to cohort-season Fluzone components because that is the approved
+canonical source now available in the repository.
+
+**Evidence / citation:** ZB approvals in chat on 2026-06-05; implementation in
+`R/panel-summary.R`, `_targets.R`, `products/manuscript.qmd`,
+`products/supplement.qmd`, and related tests.
+
+**Alternatives considered:** Omit vaccine status; infer vaccine status from
+short names without a source file; keep source aliases and handle them through
+analysis-code aliasing; or use broader wording that implies representativeness.
+These alternatives were rejected because ZB supplied a canonical vaccine-source
+file, approved short-name standardization in that file, and approved explicit
+generalizability limitation language.
+
+**Impact:** Panel coverage, vaccine matching, and space-coverage outputs should
+be regenerated through the targets pipeline. Final publication claims should
+remain panel-specific unless independent panels or additional cohorts are
+analyzed.
+
 ## 2026-06-05 - Rank-Based Mantel and Descriptive Spearman Sensitivity
 
 **Decision:** Add rank-based Spearman Mantel correlations and descriptive

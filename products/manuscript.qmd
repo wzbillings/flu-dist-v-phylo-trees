@@ -60,18 +60,21 @@ FluZone (Sanofi Pasteur) vaccine, and gave pre-vaccination and post-vaccination
 a panel of historical viruses. We computed the mean Grantham amino-acid
 distance per comparable aligned site [@grantham1974], $p$-Epitope distance
 [@gupta2006], and the absolute difference in the year of isolation of strains
-[@auladell2022] from hemagglutinin protein sequences. We restricted the
-analysis panel to strains present in the stored H1N1 or H3N2 antigenic
-cartography maps, because comparison with cartographic distance is a central
-analysis objective. We used Racmacs to compute antigenic cartography distances
-from the HAI data [@wilks2023]. The stored `.ace` maps were treated as
-first-pass cartography inputs; map dimensionality, strain and serum counts,
-stored stress, and titer missingness diagnostics are reported in the
-supplement. A separate manuscript is planned to describe construction of the
-human-serum antigenic cartographies. Using the same HAI dataset to build the
-maps and compare cartographic distances is a limitation, but no comparable
-alternative is currently available for this strain panel. All of our analyses
-were conducted separately for H1N1 and H3N2 strains.
+[@auladell2022] from hemagglutinin protein sequences. The strain panel was
+expert-selected to span historical H1N1/H3N2 antigenic space while retaining
+strains that could be linked to sequence data and the stored antigenic
+cartography maps. We restricted the analysis panel to strains present in the
+stored H1N1 or H3N2 antigenic cartography maps, because comparison with
+cartographic distance is a central analysis objective. We used Racmacs to
+compute antigenic cartography distances from the HAI data [@wilks2023]. The
+stored `.ace` maps were treated as first-pass cartography inputs; map
+dimensionality, strain and serum counts, stored stress, and titer missingness
+diagnostics are reported in the supplement. A separate manuscript is planned to
+describe construction of the human-serum antigenic cartographies. Using the
+same HAI dataset to build the maps and compare cartographic distances is a
+limitation, but no comparable alternative is currently available for this
+strain panel. All of our analyses were conducted separately for H1N1 and H3N2
+strains.
 
 In order to compare with phylogenetic methods, we first computed a multiple
 sequence alignment (MSA) using the MUSCLE algorithm [@edgar2004]. The Grantham
@@ -85,10 +88,12 @@ The source sequence table contains full-length
 flags and accession/source metadata; after alignment, the pipeline checks
 non-gap protein lengths against the subtype-specific full-length reference
 rather than relying on strain-name exceptions. We had 18 H1N1 strains and 21
-H3N2 strains in total. A full inclusion and provenance audit, including source
-rows excluded because they were absent from the stored cartography maps,
-source/accession fields, sequence completeness checks, and pair counts, is
-reported in the supplement. We then used both protein alignments to construct maximum
+H3N2 strains in total (@tbl-panel-summary). Fluzone vaccine-component status
+is defined from the cohort-season vaccine-strain source reported in the
+supplement. A full inclusion and provenance audit, including source rows
+excluded because they were absent from the stored cartography maps,
+source/accession fields, sequence completeness checks, vaccine-component
+status, and pair counts, is reported in the supplement. We then used both protein alignments to construct maximum
 likelihood (ML) unrooted phylogenetic trees using the FLU amino acid
 substitution model [@dang2010]. For each subtype, we
 compared FLU-family models with and without invariant sites and discrete gamma
@@ -134,6 +139,17 @@ internal-branch support and bootstrap topology-stability diagnostics in the
 supplement. Our analyses were implemented
 with R version 4.3.3 [@rcoreteam2024] using the packages
 `phangorn` [@schliep2011] and `msa` [@bodenhofer2015].
+
+```{r}
+#| label: tbl-panel-summary
+#| tbl-cap: |
+#|   Summary of the expert-selected H1N1/H3N2 analysis panel. Vaccine
+#|   component status is defined as inclusion as a Fluzone component during
+#|   the cohort-study vaccine seasons.
+
+here::here("results", "Tables", "panel-summary-table.rds") |>
+	readr::read_rds()
+```
 
 # Study Results
 
@@ -314,12 +330,15 @@ physicochemical difference, while $p$-Epitope distance focuses on dominant
 epitope-level mismatch.
 
 The cartographic distance tree was substantially different from the ML tree for
-both H1N1 and H3N2. Since cartographic distance is based on observed immune
-response data, this implies that the hemagglutinin
-sequence is not the only factor in determining individual immune responses. Our
-sample is likely not representative, so similar analyses should be repeated on
-other cohorts. Performing similar analyses using neuraminidase sequence and
-inhibition data would complete our findings well.
+both H1N1 and H3N2. Because cartographic distance is based on observed immune
+response data, this pattern is consistent with HAI-based cartography capturing
+immune-response structure that is not fully explained by HA phylogenetic
+distance in this panel. The selected panel spans historical H1N1/H3N2 antigenic
+space and cohort-season Fluzone components, but it is not a representative
+survey of all influenza strains, cohorts, or eras. Similar analyses should be
+repeated on independent panels and other cohorts. Performing similar analyses
+using neuraminidase sequence and inhibition data would complete our findings
+well.
 
 Overall we find that temporal distance should be interpreted cautiously because
 it depends on subtype-specific evolutionary history. Additionally, the genetic

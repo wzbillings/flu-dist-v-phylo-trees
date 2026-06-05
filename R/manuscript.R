@@ -42,6 +42,7 @@ render_quarto_file <- function(qmd_path, output_file) {
 
 render_quarto_manuscript <- function(
 		qmd_path,
+		panel_summary_table_file,
 		correlation_plot_file,
 		ml_tree_plot_file,
 		cophenetic_correlation_table_file,
@@ -53,6 +54,7 @@ render_quarto_manuscript <- function(
 		output_file = "products/manuscript.docx"
 	) {
 	validate_file_exists(qmd_path, "manuscript qmd")
+	validate_file_exists(panel_summary_table_file, "panel summary table")
 	validate_file_exists(correlation_plot_file, "correlation figure")
 	validate_file_exists(ml_tree_plot_file, "ML tree figure")
 	validate_file_exists(cophenetic_correlation_table_file, "distance correlation table")
@@ -91,6 +93,11 @@ render_quarto_supplement <- function(
 		model_selection_table_file,
 		alignment_model_sensitivity_file,
 		alignment_model_sensitivity_table_file,
+		panel_summary_table_file,
+		panel_strain_status_table_file,
+		fluzone_vaccine_strain_match_table_file,
+		panel_space_coverage_table_file,
+		panel_temporal_coverage_plot_file,
 		strain_flow_table_file,
 		strain_accession_table_file,
 		strain_pair_count_table_file,
@@ -131,6 +138,11 @@ render_quarto_supplement <- function(
 	validate_file_exists(model_selection_table_file, "tree model-selection table")
 	validate_file_exists(alignment_model_sensitivity_file, "alignment model sensitivity summary")
 	validate_file_exists(alignment_model_sensitivity_table_file, "alignment model sensitivity table")
+	validate_file_exists(panel_summary_table_file, "panel summary table")
+	validate_file_exists(panel_strain_status_table_file, "panel strain status table")
+	validate_file_exists(fluzone_vaccine_strain_match_table_file, "Fluzone vaccine strain match table")
+	validate_file_exists(panel_space_coverage_table_file, "panel space coverage table")
+	validate_file_exists(panel_temporal_coverage_plot_file, "panel temporal coverage plot")
 	validate_file_exists(strain_flow_table_file, "strain flow audit table")
 	validate_file_exists(strain_accession_table_file, "strain provenance accession table")
 	validate_file_exists(strain_pair_count_table_file, "strain pair-count table")
