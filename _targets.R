@@ -7,8 +7,12 @@ tar_option_set(
 	format = "rds"
 )
 
+# Set this variable to TRUE to run in test mode
+# which is much faster.
+RUN_IN_TEST_MODE <- FALSE
+
 list(
-	tar_target(analysis_mode, Sys.getenv("FLU_TARGETS_MODE", "test")),
+	tar_target(analysis_mode, ifelse(isTRUE(RUN_IN_TEST_MODE), "test", "full")),
 	tar_target(analysis_settings, make_analysis_settings(analysis_mode)),
 	
 	# Raw/source and first-pass cartography inputs.
