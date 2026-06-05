@@ -13,6 +13,7 @@ list(
 	
 	# Raw/source and first-pass cartography inputs.
 	tar_target(sequence_source_file, "data/UGAFluVac-sequences.csv", format = "file"),
+	tar_target(fluzone_vaccine_strain_file, "data/fluzone_vaccine_strains_by_season.csv", format = "file"),
 	tar_target(h1_cartography_file, "data/h1_post_all_2d.ace", format = "file"),
 	tar_target(h3_cartography_file, "data/h3_post_all_2d.ace", format = "file"),
 	tar_target(
@@ -24,6 +25,7 @@ list(
 	),
 	tar_target(h1_cartography_map, read_cartography_map(h1_cartography_file)),
 	tar_target(h3_cartography_map, read_cartography_map(h3_cartography_file)),
+	tar_target(fluzone_vaccine_strains, load_vaccine_strain_source(fluzone_vaccine_strain_file)),
 	tar_target(
 		cartography_antigen_names,
 		extract_cartography_antigen_names(h1_cartography_map, h3_cartography_map)
@@ -149,6 +151,9 @@ list(
 	),
 	tar_target(sequence_source_summary, make_sequence_source_summary(strain_provenance_records)),
 	tar_target(strain_flow_summary, make_strain_flow_summary(strain_provenance_records, strain_pair_counts)),
+	tar_target(vaccine_strain_records, make_vaccine_strain_records(fluzone_vaccine_strains, strain_provenance_records)),
+	tar_target(panel_strain_status, make_panel_strain_status(strain_provenance_records, vaccine_strain_records)),
+	tar_target(panel_summary, make_panel_summary(panel_strain_status, strain_pair_counts)),
 	tar_target(
 		distance_comparisons,
 		compare_distance_matrices(distances_by_subtype, analysis_settings)
@@ -201,6 +206,21 @@ list(
 	tar_target(
 		strain_pair_count_file,
 		write_rds_target(strain_pair_counts, "results/derived/strain-pair-counts.rds"),
+		format = "file"
+	),
+	tar_target(
+		vaccine_strain_records_file,
+		write_rds_target(vaccine_strain_records, "results/derived/fluzone-vaccine-strain-records.rds"),
+		format = "file"
+	),
+	tar_target(
+		panel_strain_status_file,
+		write_rds_target(panel_strain_status, "results/derived/panel-strain-status.rds"),
+		format = "file"
+	),
+	tar_target(
+		panel_summary_file,
+		write_rds_target(panel_summary, "results/derived/panel-summary.rds"),
 		format = "file"
 	),
 	tar_target(
@@ -290,6 +310,10 @@ list(
 	tar_target(
 		full_distance_table,
 		make_full_distance_table(distances_by_subtype, tree_analyses)
+	),
+	tar_target(
+		panel_space_coverage,
+		make_panel_space_coverage(full_distance_table, cartography_diagnostics_summary)
 	),
 	tar_target(
 		h1_model_test_file,
@@ -389,9 +413,45 @@ list(
 		write_rds_target(distance_comparisons_with_tree, "results/derived/distance-comparisons-with-tree.rds"),
 		format = "file"
 	),
+	tar_target(
+		panel_space_coverage_file,
+		write_rds_target(panel_space_coverage, "results/derived/panel-space-coverage.rds"),
+		format = "file"
+	),
 	
 	# Manuscript-ready figures and tables.
 	tar_target(distance_scale_audit, make_distance_scale_audit()),
+	tar_target(
+		panel_summary_table_file,
+		write_panel_summary_table(panel_summary, "results/Tables/panel-summary-table.rds"),
+		format = "file"
+	),
+	tar_target(
+		panel_strain_status_table_file,
+		write_panel_strain_status_table(panel_strain_status, "results/Tables/panel-strain-status-table.rds"),
+		format = "file"
+	),
+	tar_target(
+		fluzone_vaccine_strain_match_table_file,
+		write_fluzone_vaccine_strain_match_table(
+			vaccine_strain_records,
+			"results/Tables/fluzone-vaccine-strain-match-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		panel_space_coverage_table_file,
+		write_panel_space_coverage_table(panel_space_coverage, "results/Tables/panel-space-coverage-table.rds"),
+		format = "file"
+	),
+	tar_target(
+		panel_temporal_coverage_plot_file,
+		write_panel_temporal_coverage_plot(
+			panel_strain_status,
+			"results/Figures/panel-temporal-coverage-plot.png"
+		),
+		format = "file"
+	),
 	tar_target(
 		distance_scale_audit_table_file,
 		write_distance_scale_audit_table(
@@ -831,6 +891,7 @@ list(
 		manuscript_docx,
 		render_quarto_manuscript(
 			manuscript_qmd,
+			panel_summary_table_file,
 			correlation_plot_file,
 			combined_ml_tree_plot_file,
 			cophenetic_mantel_table_file,
@@ -870,6 +931,11 @@ list(
 			model_selection_table_file,
 			alignment_model_sensitivity_file,
 			alignment_model_sensitivity_table_file,
+			panel_summary_table_file,
+			panel_strain_status_table_file,
+			fluzone_vaccine_strain_match_table_file,
+			panel_space_coverage_table_file,
+			panel_temporal_coverage_plot_file,
 			strain_flow_table_file,
 			strain_accession_table_file,
 			strain_pair_count_table_file,

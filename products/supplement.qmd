@@ -71,6 +71,70 @@ checks, and unique pairwise distance comparisons. Source sequence rows absent
 from the stored cartography maps are reported as excluded from the current
 analysis rather than as missing sequence records.
 
+The analysis panel was expert-selected to span historical H1N1/H3N2 antigenic
+space while preserving the ability to compare sequence-derived, temporal,
+phylogenetic, and HAI-based cartographic distances. Fluzone vaccine-component
+status is defined from the cohort-season vaccine-source table
+`data/fluzone_vaccine_strains_by_season.csv`. The high-dose formulation is
+classified as trivalent in seasons where any listed component is excluded from
+high-dose Fluzone and quadrivalent in seasons where no component is excluded.
+
+```{r}
+#| label: tbl-panel-summary-supplement
+#| tbl-cap: |
+#|   Subtype-level summary of the expert-selected H1N1/H3N2 analysis panel,
+#|   including isolation-year span, cohort-season Fluzone component status, and
+#|   unique off-diagonal pair-count completeness.
+
+here::here("results", "Tables", "panel-summary-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: fig-panel-temporal-coverage
+#| fig-cap: |
+#|   Isolation-year coverage for included H1N1 and H3N2 panel strains. Points
+#|   mark whether the strain was listed as a Fluzone component during one or
+#|   more cohort-study vaccine seasons.
+
+knitr::include_graphics(here::here("results", "Figures", "panel-temporal-coverage-plot.png"))
+```
+
+```{r}
+#| label: tbl-panel-strain-status
+#| tbl-cap: |
+#|   Included analysis-panel strains and cohort-season Fluzone
+#|   vaccine-component status.
+
+here::here("results", "Tables", "panel-strain-status-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-fluzone-vaccine-strain-match
+#| tbl-cap: |
+#|   H1N1 and H3N2 Fluzone vaccine components by season and their matching
+#|   status in the H1N1/H3N2 analysis panel.
+
+here::here("results", "Tables", "fluzone-vaccine-strain-match-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
+```{r}
+#| label: tbl-panel-space-coverage
+#| tbl-cap: |
+#|   Available cartographic and phylogenetic distance coverage for the
+#|   analysis panel. Distance ranges are summarized from unique off-diagonal
+#|   strain pairs.
+
+here::here("results", "Tables", "panel-space-coverage-table.rds") |>
+	readr::read_rds() |>
+	fit_flextable_to_page()
+```
+
 ```{r}
 #| label: tbl-strain-flow-audit
 #| tbl-cap: |
