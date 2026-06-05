@@ -162,6 +162,42 @@ test_that("cophenetic Mantel summary reports overall and subtype-specific matrix
 	expect_s3_class(make_cophenetic_mantel_table(summary), "flextable")
 })
 
+test_that("rank-based Mantel summary reports Spearman sensitivity estimates", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+	skip_if_not_installed("purrr")
+	skip_if_not_installed("flextable")
+
+	make_mat <- function(values) {
+		mat <- matrix(0, nrow = 4, ncol = 4, dimnames = list(letters[1:4], letters[1:4]))
+		mat[lower.tri(mat)] <- values
+		mat <- mat + t(mat)
+		mat
+	}
+	cophenetic <- make_mat(c(1, 2, 3, 4, 5, 6))
+	year <- make_mat(c(1, 4, 9, 16, 25, 36))
+	grantham <- make_mat(c(2, 1, 4, 3, 6, 5))
+	pepi <- make_mat(c(1, 1, 2, 3, 5, 8))
+	cart <- make_mat(c(6, 5, 3, 4, 2, 1))
+	distances <- list(
+		h1 = list(cophenetic = cophenetic, year = year, grantham = grantham, pepi = pepi, cart = cart),
+		h3 = list(cophenetic = cophenetic, year = cart, grantham = pepi, pepi = grantham, cart = year)
+	)
+	settings <- make_analysis_settings("test")
+	settings$mantel_permutations <- 9L
+	settings$mantel_bootstrap_reps <- 5L
+
+	summary <- calculate_cophenetic_mantel_summary(distances, settings, correlation_method = "spearman")
+	h1_year <- summary |>
+		dplyr::filter(.data$Comparison == "Temporal distance", .data$Scope == "H1N1")
+
+	expect_equal(nrow(summary), 12)
+	expect_equal(unique(summary$`Correlation method`), "Spearman")
+	expect_equal(h1_year$`Mantel r`, 1)
+	expect_true(all(summary$`Bootstrap draws` == 5))
+	expect_s3_class(make_spearman_mantel_sensitivity_table(summary), "flextable")
+})
+
 test_that("descriptive cophenetic correlations use raw distance values", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")
@@ -193,6 +229,46 @@ test_that("descriptive cophenetic correlations use raw distance values", {
 	expect_equal(overall$`Pearson r`, stats::cor(c(1, 2, 100, 110), c(10, 20, 30, 40)))
 })
 
+test_that("descriptive cophenetic correlations support Spearman rank summaries", {
+	skip_if_not_installed("tibble")
+	skip_if_not_installed("dplyr")
+	skip_if_not_installed("tidyr")
+	skip_if_not_installed("flextable")
+
+	pair_values <- tibble::tibble(
+		subtype = c("h1", "h1", "h3", "h3"),
+		Var1 = c("b", "c", "b", "c"),
+		Var2 = "a",
+		cophenetic = c(1, 2, 100, 110),
+		year = c(1, 4, 9, 16),
+		grantham = c(1, 2, 3, 4),
+		pepi = c(2, 3, 4, 5),
+		cart = c(5, 6, 7, 8)
+	)
+	full_distance_table <- pair_values |>
+		tidyr::pivot_longer(
+			cols = c("cophenetic", "year", "grantham", "pepi", "cart"),
+			names_to = "method",
+			values_to = "d"
+		)
+	settings <- make_analysis_settings("test")
+	settings$correlation_bootstrap_reps <- 5L
+
+	summary <- calculate_cophenetic_correlation_summary(
+		full_distance_table,
+		settings,
+		correlation_method = "spearman"
+	)
+	overall <- summary |>
+		dplyr::filter(.data$Comparison == "Temporal distance", .data$Scope == "Overall")
+
+	expect_equal(unique(summary$`Correlation method`), "Spearman")
+	expect_true("Spearman rho" %in% names(summary))
+	expect_false("Pearson r" %in% names(summary))
+	expect_equal(overall$`Spearman rho`, 1)
+	expect_s3_class(make_cophenetic_spearman_correlation_table(summary), "flextable")
+})
+
 test_that("distance scale audit is supplement-ready and labels normalized outputs", {
 	skip_if_not_installed("tibble")
 	skip_if_not_installed("dplyr")
@@ -220,7 +296,7 @@ test_that("distance scale audit is supplement-ready and labels normalized output
 		audit$`Normalization scope`[audit$Output == "Correlation plot"],
 		"By metric across all displayed unique off-diagonal pairs"
 	)
-	expect_true(all(audit$`Supplement placement` %in% c("Main text", "Supplement-ready audit")))
+	expect_true(all(audit$`Supplement placement` %in% c("Main text", "Supplement", "Supplement-ready audit")))
 	expect_s3_class(make_distance_scale_audit_table(audit), "flextable")
 })
 

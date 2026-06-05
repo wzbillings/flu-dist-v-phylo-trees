@@ -30,6 +30,38 @@ distance_method_labels <- function() {
 	)
 }
 
+correlation_method_labels <- function() {
+	c(
+		pearson = "Pearson",
+		spearman = "Spearman"
+	)
+}
+
+validate_correlation_method <- function(method) {
+	if (!is.character(method) || length(method) != 1 || is.na(method)) {
+		stop("Correlation method must be a character scalar.", call. = FALSE)
+	}
+	bad <- setdiff(method, names(correlation_method_labels()))
+	if (length(bad) > 0) {
+		stop(
+			"Unknown correlation method: ",
+			method,
+			". Expected one of: ",
+			paste(names(correlation_method_labels()), collapse = ", "),
+			call. = FALSE
+		)
+	}
+	method
+}
+
+correlation_estimate_column <- function(method) {
+	method <- validate_correlation_method(method)
+	if (identical(method, "spearman")) {
+		return("Spearman rho")
+	}
+	"Pearson r"
+}
+
 subtype_display_label <- function(subtype) {
 	dplyr::if_else(
 		subtype == "h1",
@@ -66,6 +98,12 @@ make_distance_scale_audit <- function() {
 		"None",
 		"Mantel r is a correlation statistic and is invariant to positive linear rescaling of either distance matrix.",
 		"Main text",
+		"Rank-based Mantel sensitivity table",
+		"Spearman Mantel r, matrix-permutation p-values, and strain-bootstrap intervals",
+		"Raw distances",
+		"None",
+		"Spearman Mantel r is computed on ranks and is invariant to monotonic transformations; it is a sensitivity statistic rather than the primary matrix-comparison estimand.",
+		"Supplement",
 		"Subtype contrast table and plot",
 		"H3N2 minus H1N1 Mantel-r contrasts",
 		"Raw distances",
@@ -78,6 +116,12 @@ make_distance_scale_audit <- function() {
 		"None",
 		"Pearson r is scale-invariant under positive linear transformations, so normalization would not be needed for the statistic and raw inputs keep provenance clear.",
 		"Supplement-ready audit",
+		"Descriptive Spearman correlation table",
+		"Spearman rho and strain-bootstrap intervals",
+		"Raw distances",
+		"None",
+		"Spearman rho is rank-based and is included as a monotonic-association sensitivity summary, not as independent-observation inference.",
+		"Supplement",
 		"Leave-one-strain-out influence",
 		"Mantel-r and descriptive Pearson-r point-estimate changes",
 		"Raw distances",
@@ -234,8 +278,10 @@ summarise_cophenetic_mantel <- function(
 		scope,
 		settings,
 		seed_offset = 0L,
-		subtype = NULL
+		subtype = NULL,
+		correlation_method = "pearson"
 	) {
+	correlation_method <- validate_correlation_method(correlation_method)
 	perm_seed <- settings$seed + seed_offset
 	ci_seed <- settings$seed + 10000L + seed_offset
 
@@ -247,7 +293,7 @@ summarise_cophenetic_mantel <- function(
 			comparison_method,
 			permutations = settings$mantel_permutations,
 			seed = perm_seed,
-			method = "pearson"
+			method = correlation_method
 		)
 		pair_data <- make_cophenetic_pair_table(selected, comparison_method)
 	} else {
@@ -257,7 +303,7 @@ summarise_cophenetic_mantel <- function(
 			selected[[subtype]][[comparison_method]],
 			permutations = settings$mantel_permutations,
 			seed = perm_seed,
-			method = "pearson"
+			method = correlation_method
 		)
 		pair_data <- make_cophenetic_pair_table(selected, comparison_method)
 	}
@@ -267,13 +313,15 @@ summarise_cophenetic_mantel <- function(
 		estimate = mantel$estimate,
 		reps = settings$mantel_bootstrap_reps,
 		conf_level = settings$correlation_ci_level,
-		seed = ci_seed
+		seed = ci_seed,
+		method = correlation_method
 	)
 
 	tibble::tibble(
 		method = comparison_method,
 		Comparison = comparison_label,
 		Scope = scope,
+		`Correlation method` = unname(correlation_method_labels()[[correlation_method]]),
 		`Pairwise comparisons` = mantel$n_pairs,
 		`Mantel r` = mantel$estimate,
 		`CI lower` = ci$ci_lower,
@@ -289,8 +337,10 @@ summarise_cophenetic_mantel <- function(
 
 calculate_cophenetic_mantel_summary <- function(
 		distances_with_tree_by_subtype,
-		settings = make_analysis_settings()
+		settings = make_analysis_settings(),
+		correlation_method = "pearson"
 	) {
+	correlation_method <- validate_correlation_method(correlation_method)
 	method_labels <- distance_method_labels()
 	scopes <- tibble::tibble(
 		Scope = c("Overall", "H1N1", "H3N2"),
@@ -311,7 +361,8 @@ calculate_cophenetic_mantel_summary <- function(
 					scope = Scope,
 					settings = settings,
 					seed_offset = 1000L * scope_index + method_index,
-					subtype = if (is.na(subtype)) NULL else subtype
+					subtype = if (is.na(subtype)) NULL else subtype,
+					correlation_method = correlation_method
 				)
 			)
 		}
@@ -335,8 +386,12 @@ format_p_value <- function(p_value) {
 	)
 }
 
-make_cophenetic_mantel_table <- function(cophenetic_mantel_summary) {
-	cophenetic_mantel_summary |>
+make_cophenetic_mantel_table <- function(
+		cophenetic_mantel_summary,
+		statistic_label = "Mantel r",
+		caption = NULL
+	) {
+	table_data <- cophenetic_mantel_summary |>
 		dplyr::mutate(
 			`Mantel r` = sprintf("%.2f", .data$`Mantel r`),
 			`95% CI` = paste0(
@@ -356,18 +411,39 @@ make_cophenetic_mantel_table <- function(cophenetic_mantel_summary) {
 			"95% CI",
 			"Permutation p-value",
 			"Permutations"
-		) |>
+		)
+	if (!identical(statistic_label, "Mantel r")) {
+		names(table_data)[names(table_data) == "Mantel r"] <- statistic_label
+	}
+	if (is.null(caption)) {
+		caption <- paste0(
+			"Mantel correlations between each distance metric and ML-tree ",
+			"cophenetic distance, using unique off-diagonal strain pairs. ",
+			"Intervals are 95% Bayesian bootstrap intervals over sampled strains; ",
+			"p-values are two-sided matrix-permutation p-values."
+		)
+	}
+	table_data |>
 		flextable::flextable() |>
 		flextable::merge_v(j = "Comparison") |>
 		flextable::valign(j = "Comparison", valign = "top") |>
 		flextable::fix_border_issues() |>
 		flextable::autofit() |>
-		flextable::set_caption(paste0(
-			"Mantel correlations between each distance metric and ML-tree ",
-			"cophenetic distance, using unique off-diagonal strain pairs. ",
-			"Intervals are 95% Bayesian bootstrap intervals over sampled strains; ",
-			"p-values are two-sided matrix-permutation p-values."
-		))
+		flextable::set_caption(caption)
+}
+
+make_spearman_mantel_sensitivity_table <- function(cophenetic_spearman_mantel_summary) {
+	make_cophenetic_mantel_table(
+		cophenetic_spearman_mantel_summary,
+		statistic_label = "Spearman Mantel r",
+		caption = paste0(
+			"Rank-based Mantel sensitivity analysis between each distance metric ",
+			"and ML-tree cophenetic distance. Spearman Mantel r is computed on ",
+			"ranked unique off-diagonal strain-pair distances and should be ",
+			"interpreted as a monotonic-association sensitivity analysis, not as ",
+			"a replacement for the primary Mantel table."
+		)
+	)
 }
 
 write_cophenetic_mantel_table <- function(cophenetic_mantel_summary, path) {
@@ -375,7 +451,13 @@ write_cophenetic_mantel_table <- function(cophenetic_mantel_summary, path) {
 	write_rds_target(table, path)
 }
 
-weighted_pearson_correlation <- function(x, y, weights = NULL) {
+write_spearman_mantel_sensitivity_table <- function(cophenetic_spearman_mantel_summary, path) {
+	table <- make_spearman_mantel_sensitivity_table(cophenetic_spearman_mantel_summary)
+	write_rds_target(table, path)
+}
+
+weighted_correlation <- function(x, y, weights = NULL, method = "pearson") {
+	method <- validate_correlation_method(method)
 	complete <- if (is.null(weights)) {
 		stats::complete.cases(x, y)
 	} else {
@@ -383,7 +465,17 @@ weighted_pearson_correlation <- function(x, y, weights = NULL) {
 	}
 	x <- x[complete]
 	y <- y[complete]
+	if (length(x) < 2) {
+		return(NA_real_)
+	}
+	if (identical(method, "spearman")) {
+		x <- rank(x, ties.method = "average")
+		y <- rank(y, ties.method = "average")
+	}
 	if (is.null(weights)) {
+		if (stats::sd(x) <= 0 || stats::sd(y) <= 0) {
+			return(NA_real_)
+		}
 		return(stats::cor(x, y))
 	}
 	weights <- weights[complete]
@@ -400,6 +492,10 @@ weighted_pearson_correlation <- function(x, y, weights = NULL) {
 		return(NA_real_)
 	}
 	cov_xy / sqrt(var_x * var_y)
+}
+
+weighted_pearson_correlation <- function(x, y, weights = NULL) {
+	weighted_correlation(x, y, weights = weights, method = "pearson")
 }
 
 wald_correlation_ci <- function(estimate, n, conf_level = 0.95) {
@@ -514,15 +610,19 @@ strain_pair_weights <- function(
 }
 
 strain_weighted_correlation <- function(data, strain_weights) {
+	strain_weighted_method_correlation(data, strain_weights, method = "pearson")
+}
+
+strain_weighted_method_correlation <- function(data, strain_weights, method = "pearson") {
 	pair_weights <- strain_pair_weights(
 		data,
 		strain_weights,
 		preserve_stratum_pair_weight = TRUE
 	)
-	weighted_pearson_correlation(data$cophenetic, data$distance, pair_weights)
+	weighted_correlation(data$cophenetic, data$distance, pair_weights, method = method)
 }
 
-bayesboot_correlation_ci <- function(data, reps, conf_level, seed) {
+bayesboot_correlation_ci <- function(data, reps, conf_level, seed, method = "pearson") {
 	if (!requireNamespace("bayesboot", quietly = TRUE)) {
 		return(NULL)
 	}
@@ -536,7 +636,7 @@ bayesboot_correlation_ci <- function(data, reps, conf_level, seed) {
 			strain_units,
 			statistic = function(strains, weights) {
 				strain_weights <- normalize_strain_weights_by_stratum(strains, weights)
-				strain_weighted_correlation(data, strain_weights)
+				strain_weighted_method_correlation(data, strain_weights, method = method)
 			},
 			R = reps,
 			R2 = reps,
@@ -558,7 +658,7 @@ bayesboot_correlation_ci <- function(data, reps, conf_level, seed) {
 	)
 }
 
-boot_bca_correlation_ci <- function(data, reps, conf_level, seed) {
+boot_bca_correlation_ci <- function(data, reps, conf_level, seed, method = "pearson") {
 	if (!requireNamespace("boot", quietly = TRUE)) {
 		return(NULL)
 	}
@@ -572,7 +672,7 @@ boot_bca_correlation_ci <- function(data, reps, conf_level, seed) {
 			statistic = function(strains, indices) {
 				counts <- tabulate(indices, nbins = nrow(strains))
 				strain_weights <- normalize_strain_weights_by_stratum(strains, counts)
-				strain_weighted_correlation(data, strain_weights)
+				strain_weighted_method_correlation(data, strain_weights, method = method)
 			},
 			R = reps,
 			strata = strain_units$stratum
@@ -592,7 +692,8 @@ boot_bca_correlation_ci <- function(data, reps, conf_level, seed) {
 	c(lower = ci$bca[4], upper = ci$bca[5], method = "BCa strain bootstrap")
 }
 
-correlation_ci <- function(data, estimate, reps, conf_level, seed) {
+correlation_ci <- function(data, estimate, reps, conf_level, seed, method = "pearson") {
+	method <- validate_correlation_method(method)
 	data <- data |>
 		dplyr::select(
 			dplyr::any_of(c("subtype", "Var1", "Var2")),
@@ -600,7 +701,7 @@ correlation_ci <- function(data, estimate, reps, conf_level, seed) {
 		) |>
 		dplyr::filter(stats::complete.cases(dplyr::pick(dplyr::everything())))
 	
-	bayesboot_ci <- bayesboot_correlation_ci(data, reps, conf_level, seed)
+	bayesboot_ci <- bayesboot_correlation_ci(data, reps, conf_level, seed, method = method)
 	if (!is.null(bayesboot_ci)) {
 		return(tibble::tibble(
 			ci_lower = as.numeric(bayesboot_ci[["lower"]]),
@@ -609,7 +710,7 @@ correlation_ci <- function(data, estimate, reps, conf_level, seed) {
 		))
 	}
 	
-	bca_ci <- boot_bca_correlation_ci(data, reps, conf_level, seed)
+	bca_ci <- boot_bca_correlation_ci(data, reps, conf_level, seed, method = method)
 	if (!is.null(bca_ci)) {
 		return(tibble::tibble(
 			ci_lower = as.numeric(bca_ci[["lower"]]),
@@ -626,30 +727,46 @@ correlation_ci <- function(data, estimate, reps, conf_level, seed) {
 	)
 }
 
-summarise_cophenetic_correlation <- function(data, scope, settings, seed_offset = 0L) {
+summarise_cophenetic_correlation <- function(
+		data,
+		scope,
+		settings,
+		seed_offset = 0L,
+		correlation_method = "pearson"
+	) {
+	correlation_method <- validate_correlation_method(correlation_method)
 	complete <- data |>
 		dplyr::filter(stats::complete.cases(.data$cophenetic, .data$distance))
-	estimate <- stats::cor(complete$cophenetic, complete$distance)
+	estimate <- weighted_correlation(
+		complete$cophenetic,
+		complete$distance,
+		method = correlation_method
+	)
 	ci <- correlation_ci(
 		complete,
 		estimate = estimate,
 		reps = settings$correlation_bootstrap_reps,
 		conf_level = settings$correlation_ci_level,
-		seed = settings$seed + seed_offset
+		seed = settings$seed + seed_offset,
+		method = correlation_method
 	)
 	tibble::tibble(
 		scope = scope,
 		n_pairs = nrow(complete),
-		pearson_r = estimate
+		correlation_method = unname(correlation_method_labels()[[correlation_method]]),
+		correlation_estimate = estimate
 	) |>
 		dplyr::bind_cols(ci)
 }
 
 calculate_cophenetic_correlation_summary <- function(
 		full_distance_table,
-		settings = make_analysis_settings()
+		settings = make_analysis_settings(),
+		correlation_method = "pearson"
 	) {
+	correlation_method <- validate_correlation_method(correlation_method)
 	method_labels <- distance_method_labels()
+	estimate_column <- correlation_estimate_column(correlation_method)
 	
 	long_table <- full_distance_table |>
 		dplyr::mutate(method = as.character(.data$method)) |>
@@ -675,7 +792,8 @@ calculate_cophenetic_correlation_summary <- function(
 				data,
 				scope = "Overall",
 				settings = settings,
-				seed_offset = match(key$method, names(method_labels))
+				seed_offset = match(key$method, names(method_labels)),
+				correlation_method = correlation_method
 			)
 		) |>
 		dplyr::ungroup()
@@ -688,13 +806,14 @@ calculate_cophenetic_correlation_summary <- function(
 				scope = key$subtype_label,
 				settings = settings,
 				seed_offset = 100L * match(key$subtype_label, c("H1N1", "H3N2")) +
-					match(key$method, names(method_labels))
+					match(key$method, names(method_labels)),
+				correlation_method = correlation_method
 			)
 		) |>
 		dplyr::ungroup() |>
 		dplyr::select(-dplyr::all_of("subtype_label"))
 	
-	dplyr::bind_rows(overall, by_subtype) |>
+	out <- dplyr::bind_rows(overall, by_subtype) |>
 		dplyr::ungroup() |>
 		dplyr::mutate(
 			comparison = factor(.data$comparison, levels = unname(method_labels)),
@@ -705,17 +824,26 @@ calculate_cophenetic_correlation_summary <- function(
 			Comparison = as.character(.data$comparison),
 			Scope = as.character(.data$scope),
 			`Pairwise comparisons` = .data$n_pairs,
-			`Pearson r` = .data$pearson_r,
+			`Correlation method` = .data$correlation_method,
+			correlation_estimate = .data$correlation_estimate,
 			`CI lower` = .data$ci_lower,
 			`CI upper` = .data$ci_upper,
 			`CI method` = .data$ci_method
 		)
+	names(out)[names(out) == "correlation_estimate"] <- estimate_column
+	out
 }
 
-make_cophenetic_correlation_table <- function(cophenetic_correlation_summary) {
-	cophenetic_correlation_summary |>
+make_cophenetic_correlation_table <- function(
+		cophenetic_correlation_summary,
+		estimate_column = NULL,
+		caption = NULL
+	) {
+	if (is.null(estimate_column)) {
+		estimate_column <- intersect(c("Pearson r", "Spearman rho"), names(cophenetic_correlation_summary))[[1]]
+	}
+	table_data <- cophenetic_correlation_summary |>
 		dplyr::mutate(
-			`Pearson r` = sprintf("%.2f", .data$`Pearson r`),
 			`95% CI` = paste0(
 				"(",
 				sprintf("%.2f", .data$`CI lower`),
@@ -723,23 +851,46 @@ make_cophenetic_correlation_table <- function(cophenetic_correlation_summary) {
 				sprintf("%.2f", .data$`CI upper`),
 				")"
 			)
-		) |>
-		dplyr::select(-dplyr::all_of(c("CI lower", "CI upper", "CI method"))) |>
+		)
+	table_data[[estimate_column]] <- sprintf("%.2f", table_data[[estimate_column]])
+	if (is.null(caption)) {
+		caption <- paste0(
+			"Descriptive Pearson correlations between each distance metric and ",
+			"ML-tree cophenetic distance, using unique off-diagonal strain pairs. ",
+			"Intervals are 95% Bayesian bootstrap intervals over sampled strains ",
+			"when the bayesboot package is available."
+		)
+	}
+	table_data |>
+		dplyr::select(-dplyr::any_of(c("Correlation method", "CI lower", "CI upper", "CI method"))) |>
 		flextable::flextable() |>
 		flextable::merge_v(j = "Comparison") |>
 		flextable::valign(j = "Comparison", valign = "top") |>
 		flextable::fix_border_issues() |>
 		flextable::autofit() |>
-		flextable::set_caption(paste0(
-			"Descriptive Pearson correlations between each distance metric and ",
-			"ML-tree cophenetic distance, using unique off-diagonal strain pairs. ",
-			"Intervals are 95% Bayesian bootstrap intervals over sampled strains ",
-			"when the bayesboot package is available."
-		))
+		flextable::set_caption(caption)
+}
+
+make_cophenetic_spearman_correlation_table <- function(cophenetic_spearman_correlation_summary) {
+	make_cophenetic_correlation_table(
+		cophenetic_spearman_correlation_summary,
+		estimate_column = "Spearman rho",
+		caption = paste0(
+			"Descriptive Spearman rank correlations between each distance metric ",
+			"and ML-tree cophenetic distance, using unique off-diagonal strain ",
+			"pairs. Intervals are strain-level bootstrap intervals and should be ",
+			"interpreted as sensitivity summaries for monotonic association."
+		)
+	)
 }
 
 write_cophenetic_correlation_table <- function(cophenetic_correlation_summary, path) {
 	table <- make_cophenetic_correlation_table(cophenetic_correlation_summary)
+	write_rds_target(table, path)
+}
+
+write_cophenetic_spearman_correlation_table <- function(cophenetic_spearman_correlation_summary, path) {
+	table <- make_cophenetic_spearman_correlation_table(cophenetic_spearman_correlation_summary)
 	write_rds_target(table, path)
 }
 

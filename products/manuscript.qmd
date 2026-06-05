@@ -114,7 +114,10 @@ we subtracted the H1N1 Mantel correlation from the H3N2 Mantel correlation for
 each distance metric, with uncertainty estimated by the same strain-level
 Bayesian bootstrap. Descriptive Pearson correlations using the same unique
 off-diagonal pair representation are reported in the supplement for
-interpretability.
+interpretability. Rank-based Spearman Mantel and descriptive Spearman
+correlations are also reported in the supplement as sensitivity analyses for
+monotonic but nonlinear relationships, not as replacements for the primary
+Mantel estimand.
 
 For each of the four distance metrics, we also built distance-based trees using
 neighbor joining [@saitou1987NeighborJoining]. To compare the methods, we
@@ -235,6 +238,12 @@ as sensitivity outputs only; because the current regenerated outputs use
 test-mode settings, we do not interpret the secondary-metric results here.
 Unless full-mode outputs show a major difference, these secondary distances
 will not be used to build distance-based neighbor-joining trees.
+
+Rank-based Spearman Mantel and descriptive Spearman correlations are reported
+in the supplement as monotonic-association sensitivity analyses. These outputs
+are intended to check whether the primary distance-matrix patterns depend on
+approximately linear relationships between distance scales; they are not used
+to reinterpret the main results in this manuscript pass.
 
 The cartographic Mantel correlation for H1N1 is also moderate, indicating that
 the evolutionary pattern of H1N1 strains does not necessarily explain variation

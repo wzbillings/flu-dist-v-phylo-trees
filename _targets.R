@@ -430,6 +430,30 @@ list(
 		format = "file"
 	),
 	tar_target(
+		cophenetic_spearman_mantel_summary,
+		calculate_cophenetic_mantel_summary(
+			distances_with_tree_by_subtype,
+			analysis_settings,
+			correlation_method = "spearman"
+		)
+	),
+	tar_target(
+		cophenetic_spearman_mantel_summary_file,
+		write_rds_target(
+			cophenetic_spearman_mantel_summary,
+			"results/derived/cophenetic-spearman-mantel-summary.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_spearman_mantel_table_file,
+		write_spearman_mantel_sensitivity_table(
+			cophenetic_spearman_mantel_summary,
+			"results/Tables/distance-spearman-mantel-sensitivity-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
 		cophenetic_subtype_contrast_summary,
 		calculate_cophenetic_subtype_contrast_summary(
 			distances_with_tree_by_subtype,
@@ -500,6 +524,30 @@ list(
 		write_cophenetic_correlation_table(
 			cophenetic_correlation_summary,
 			"results/Tables/descriptive-pearson-distance-correlation-table.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_spearman_correlation_summary,
+		calculate_cophenetic_correlation_summary(
+			full_distance_table,
+			analysis_settings,
+			correlation_method = "spearman"
+		)
+	),
+	tar_target(
+		cophenetic_spearman_correlation_summary_file,
+		write_rds_target(
+			cophenetic_spearman_correlation_summary,
+			"results/derived/descriptive-spearman-cophenetic-correlation-summary.rds"
+		),
+		format = "file"
+	),
+	tar_target(
+		cophenetic_spearman_correlation_table_file,
+		write_cophenetic_spearman_correlation_table(
+			cophenetic_spearman_correlation_summary,
+			"results/Tables/descriptive-spearman-distance-correlation-table.rds"
 		),
 		format = "file"
 	),
@@ -800,11 +848,14 @@ list(
 			supplement_qmd,
 			cophenetic_mantel_summary_file,
 			cophenetic_mantel_table_file,
+			cophenetic_spearman_mantel_summary_file,
+			cophenetic_spearman_mantel_table_file,
 			cophenetic_subtype_contrast_summary_file,
 			cophenetic_subtype_contrast_table_file,
 			cophenetic_subtype_contrast_sensitivity_file,
 			cophenetic_subtype_contrast_sensitivity_table_file,
 			cophenetic_correlation_table_file,
+			cophenetic_spearman_correlation_table_file,
 			cophenetic_influence_summary_file,
 			cophenetic_influence_table_file,
 			cophenetic_influence_plot_file,

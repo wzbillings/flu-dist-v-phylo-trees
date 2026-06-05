@@ -34,7 +34,8 @@ The implemented tests cover fast deterministic behavior:
 - lightweight manuscript/table helper functions that do not render plots, tables, or documents;
 - strain-level bootstrap helper behavior for distance-correlation intervals;
 - Mantel matrix-comparison summaries that exclude diagonal and duplicate
-  distance-matrix entries;
+  distance-matrix entries, including rank-based Spearman Mantel sensitivity
+  summaries;
 - raw-versus-normalized distance handling guardrails, including raw
   single-metric tree inputs, raw scale-invariant association summaries, and
   labeled normalized visual/audit outputs;
@@ -96,7 +97,7 @@ Assumptions:
 - `tests/testthat/test-cartography-diagnostics.R`: tests pure helper behavior
   for `.ace`-derived map diagnostics, including titer missingness summaries,
   unavailable optimizer metadata reporting, and supplement-ready table labels.
-- `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, raw descriptive distance-correlation inputs, supplement-ready raw-versus-normalized audit tables, weighted correlations, Fisher/Wald confidence interval guardrails, strain-level bootstrap weighting helpers, manuscript-ready Mantel summary structure, tree-comparison table helpers, supplemental topology-distance table helpers, and model-selection summaries.
+- `tests/testthat/test-plots-and-tables.R`: tests stable display labels, distance labels, color palette names, normalized plotting data, raw descriptive distance-correlation inputs, supplement-ready raw-versus-normalized audit tables, weighted correlations, Fisher/Wald confidence interval guardrails, strain-level bootstrap weighting helpers, manuscript-ready Mantel summary structure, rank-based Mantel and descriptive Spearman sensitivity summaries, tree-comparison table helpers, supplemental topology-distance table helpers, and model-selection summaries.
 - `tests/testthat/test-tree-building.R`: tests ML-tree support and
   topology-stability helper behavior with toy `phylo` and `multiPhylo` objects,
   and verifies that neighbor-joining preparation preserves raw non-p-epitope
