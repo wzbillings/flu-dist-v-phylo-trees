@@ -97,15 +97,6 @@ alignment_to_character <- function(msa_alignment) {
 	as.character(msa_alignment@unmasked)
 }
 
-normalize_matrix <- function(mat) {
-	mmax <- max(mat, na.rm = TRUE)
-	mmin <- min(mat, na.rm = TRUE)
-	if (isTRUE(all.equal(mmax, mmin))) {
-		return(mat * 0)
-	}
-	(mat - mmin) / (mmax - mmin)
-}
-
 validate_distance_matrix <- function(mat, label = "distance matrix") {
 	if (!is.matrix(mat)) {
 		stop(label, " must be a matrix.", call. = FALSE)
